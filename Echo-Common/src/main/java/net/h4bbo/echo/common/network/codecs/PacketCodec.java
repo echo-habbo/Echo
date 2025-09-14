@@ -8,6 +8,7 @@ import net.h4bbo.echo.common.util.specialised.Base64Encoding;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Objects;
 
 public class PacketCodec implements IPacketCodec {
     private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -76,9 +77,7 @@ public class PacketCodec implements IPacketCodec {
 
     @Override
     public void send(IConnectionSend target) {
-        if (target == null) {
-            throw new IllegalArgumentException("Target cannot be null");
-        }
+        Objects.requireNonNull(target);
 
         composed = true;
 
@@ -87,9 +86,7 @@ public class PacketCodec implements IPacketCodec {
 
     @Override
     public void sendAll(IConnectionSend... targets) {
-        if (targets == null) {
-            throw new IllegalArgumentException("Targets cannot be null");
-        }
+        Objects.requireNonNull(targets);
 
         composed = true;
 

@@ -1,5 +1,5 @@
 <config>
-    <minLevel>INFO</minLevel>
+    <minLevel>DEBUG</minLevel>
     <pattern>[%{timestamp:datetime('yyyy-MM-dd HH:mm:ss')}] [%{level:LEVEL}] (%{package:CYAN}) %{message}</pattern>
     <consoleColour>true</consoleColour>
     <appenders>

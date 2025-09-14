@@ -6,5 +6,5 @@ import net.h4bbo.echo.api.network.codecs.IClientCodec;
 public interface IMessageEvent {
     int getHeaderId();
 
-    void handle(IPlayer player, IClientCodec packet);
+    void handle(IPlayer player, IClientCodec msg);
 }

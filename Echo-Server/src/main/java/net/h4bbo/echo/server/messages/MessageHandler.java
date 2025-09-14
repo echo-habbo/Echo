@@ -22,24 +22,21 @@ public class MessageHandler implements IMessageHandler {
         this.connectionSession = connectionSession;
     }
 
-    // Registers a handler instance for the specified header identifier.
     public void register(IPlugin plugin, int headerId, IMessageEvent handler) {
-        if (plugin == null) throw new IllegalArgumentException("plugin cannot be null");
-        if (handler == null) throw new IllegalArgumentException("handler cannot be null");
+        Objects.requireNonNull(plugin);
+        Objects.requireNonNull(handler);
 
         List<IMessageEvent> list = events.computeIfAbsent(headerId, k -> new ArrayList<>());
-        synchronized (list) {
-            list.add(handler);
-        }
+        list.add(handler);
 
-        // log.debug("Registered handler {} for header {}", handler.getClass().getSimpleName(), headerId);
+        log.debug("Registered handler {} for header {}", handler.getClass().getSimpleName(), headerId);
     }
 
     // Registers a handler by type. The handler must implement IMessageEvent and expose a public HeaderId property.
     public <THandler extends IMessageEvent> void register(IPlugin plugin, Class<THandler> handlerClass) {
         try {
             THandler instance = handlerClass.getDeclaredConstructor().newInstance();
-            int headerId = getHeaderIdFromHandler(instance);
+            int headerId = instance.getHeaderId();
             register(plugin, headerId, instance);
         } catch (Exception e) {
             log.error("Failed to register handler", e);
@@ -51,14 +48,13 @@ public class MessageHandler implements IMessageHandler {
         int headerId;
         try {
             THandler instance = handlerClass.getDeclaredConstructor().newInstance();
-            headerId = getHeaderIdFromHandler(instance);
+            headerId = instance.getHeaderId();
         } catch (Exception e) {
             log.error("Failed to deregister handler", e);
             return 0;
         }
         List<IMessageEvent> list = events.get(headerId);
         if (list != null) {
-            synchronized (list) {
                 int originalSize = list.size();
                 list.removeIf(h -> h.getClass() == handlerClass);
                 int removed = originalSize - list.size();
@@ -69,7 +65,6 @@ public class MessageHandler implements IMessageHandler {
                     log.debug("Deregistered {} handler(s) of type {} for header {}", removed, handlerClass.getSimpleName(), headerId);
                 }
                 return removed;
-            }
         }
         return 0;
     }
@@ -86,10 +81,7 @@ public class MessageHandler implements IMessageHandler {
 
             log.debug("RECEIVED {}: [{} / {}] / {}", handlers.get(0).getClass().getSimpleName(), packet.getHeader(), packet.getHeaderId(), packet.getMessageBody());
 
-            List<IMessageEvent> snapshot;
-            synchronized (handlers) {
-                snapshot = new ArrayList<>(handlers);
-            }
+            List<IMessageEvent> snapshot = new ArrayList<>(handlers);
 
             if (snapshot.size() == 1) {
                 snapshot.getFirst().handle(connectionSession.getPlayer(), packet);
@@ -112,17 +104,6 @@ public class MessageHandler implements IMessageHandler {
                 if (packet != null && packet.getBuffer() != null)
                     packet.getBuffer().release();
             } catch (Exception ignore) { }
-        }
-    }
-
-    // Helper to get HeaderId via reflection
-    private int getHeaderIdFromHandler(IMessageEvent handler) {
-        try {
-            Field headerIdField = handler.getClass().getDeclaredField("HeaderId");
-            headerIdField.setAccessible(true);
-            return headerIdField.getInt(handler);
-        } catch (Exception e) {
-            throw new RuntimeException("Handler must have a public int HeaderId field", e);
         }
     }
 }

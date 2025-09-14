@@ -4,24 +4,27 @@ import io.netty.channel.Channel;
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.IMessageHandler;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
+import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
 import net.h4bbo.echo.api.network.session.IConnectionSend;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.server.game.player.Player;
 import net.h4bbo.echo.server.messages.MessageHandler;
+import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.net.InetSocketAddress;
 
-public class ConnectionSession implements IConnectionSession, IConnectionSend {
+public class ConnectionSession implements IConnectionSession {
     private final Channel channel;
     private final Player player;
+    private final SimpleLog log;
     private boolean IsDisconnected = false;
-
     private final IMessageHandler messageHandler;
 
     public ConnectionSession(Channel channel) {
         if (channel == null) throw new IllegalArgumentException("channel cannot be null");
         this.channel = channel;
         this.player = new Player(this);
+        this.log = SimpleLog.of(ConnectionSession.class);
         this.messageHandler = new MessageHandler(this);
     }
 
@@ -50,10 +53,10 @@ public class ConnectionSession implements IConnectionSession, IConnectionSend {
         if (!channel.isActive()) return;
 
         try {
-            // Log.forContext("GameNetworkHandler").debug("SENT: " + composer.getHeaderId() + " / " + ProtocolCodec.Encoding.getString(composer.getBuffer().array()).toConsoleOutput());
+            log.debug("SENT: " + composer.getHeaderId() + " / " + new String(composer.getBuffer()));
             channel.writeAndFlush(composer);
         } catch (Exception ex) {
-            // Log.forContext("GameNetworkHandler").debug(ex, "Error sending packet");
+            log.debug("Error sending packet", ex);
         }
     }
 

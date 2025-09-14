@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.IMessageHandler;
 
-public interface IConnectionSession {
+public interface IConnectionSession extends IConnectionSend {
     /**
      * Gets the underlying network channel associated with this session.
      */
