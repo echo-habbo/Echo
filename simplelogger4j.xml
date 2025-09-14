@@ -1,0 +1,17 @@
+<config>
+    <minLevel>INFO</minLevel>
+    <pattern>[%{timestamp:datetime('yyyy-MM-dd HH:mm:ss')}] [%{level:LEVEL}] (%{package:CYAN}) %{message}</pattern>
+    <consoleColour>true</consoleColour>
+    <appenders>
+        <console enabled="true"/>
+        <file enabled="true" path="logs/app-%d{yyyy-MM-dd}.log" bufferSize="16384" append="true"/>
+    </appenders>
+    <levelPalette
+            debug="BLUE"
+            info=""
+            warn="BRIGHT_YELLOW"
+            success="GREEN"
+            error="RED"
+            critical="BG_BRIGHT_RED"
+    />
+</config>

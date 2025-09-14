@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+apply from: "../root.gradle"
+
+
+dependencies {
+    implementation project (":Echo-API")
+    implementation project (":Echo-Common")
+    implementation 'com.github.lovepigeons:SimpleLogger4j:v1.0.3'
+}

@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+apply from: "../root.gradle"
+
+dependencies {
+    // https://mvnrepository.com/artifact/io.netty/netty-all
+    api ("io.netty:netty-all:4.2.6.Final")
+    api ("com.github.lovepigeons:Inject4j:v1.0.0")
+}
+

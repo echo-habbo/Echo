@@ -1,0 +1,16 @@
+rootProject.name = 'Echo'
+
+file('.').listFiles()
+        .findAll { it.isDirectory() && it.name.startsWith('Echo-') }
+        .each { include it.name }
+
+/*
+include 'Echo-API'
+project(":Echo-API").projectDir = file("Echo-API")
+
+include 'Echo-Common'
+project(":Echo-Common").projectDir = file("Echo-Common")
+
+include 'Echo-Server'
+project(":Echo-Server").projectDir = file("Echo-Server")
+*/
