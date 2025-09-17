@@ -39,7 +39,7 @@ public class CollectionUtil {
         return Arrays.asList(values);
     }
 
-    public static <T> List<List<T>> batch(List<T> originalList, int chunkSize) {
+    public static <T> List<List<T>> paginate(List<T> originalList, int chunkSize) {
         if (chunkSize <= 0) {
             throw new IllegalArgumentException("Chunk size must be greater than zero.");
         }

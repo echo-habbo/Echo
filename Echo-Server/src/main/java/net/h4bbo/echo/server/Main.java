@@ -1,5 +1,10 @@
 package net.h4bbo.echo.server;
 
+import net.h4bbo.echo.server.commands.CommandHandler;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 public class Main {
     public static void main(String[] args) {
         // Display application banner and build information
@@ -13,9 +18,22 @@ public class Main {
         System.out.println(" CLIENT: R14+");
         System.out.println();
 
-        // Start the main emulator application
+        // Start console input on virtual thread
+        final var commandHandler = new CommandHandler();
+        Thread.ofVirtual().start(() -> runConsole(commandHandler));
+
+        // Simulate main server on the main thread
         Echo.boot();
+    }
 
-
+    private static void runConsole(CommandHandler consoleHandler) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                consoleHandler.execute(line);
+            }
+        } catch (Exception e) {
+            System.err.println("Console error: " + e.getMessage());
+        }
     }
 }
