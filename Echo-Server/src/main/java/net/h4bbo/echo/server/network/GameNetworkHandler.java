@@ -4,17 +4,20 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import net.h4bbo.echo.api.event.IEventManager;
+import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
 import net.h4bbo.echo.common.network.codecs.ClientCodec;
 import net.h4bbo.echo.common.network.codecs.PacketCodec;
+import net.h4bbo.echo.server.implmentation.handshake.GenerateKeyMessageEvent;
+import net.h4bbo.echo.server.implmentation.handshake.InitCryptoMessageEvent;
 import net.h4bbo.echo.server.network.session.ConnectionSession;
 import net.h4bbo.echo.server.plugin.ExamplePlugin;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec> {
     public static final SimpleLog log = SimpleLog.of(GameNetworkHandler.class);
-    public static final AttributeKey<ConnectionSession> CONNECTION_KEY = AttributeKey.newInstance("CONNECTION_KEY");
+    public static final AttributeKey<IConnectionSession> CONNECTION_KEY = AttributeKey.newInstance("CONNECTION_KEY");
     private final IEventManager eventManager;
     private final IPluginManager pluginManager;
 
@@ -29,7 +32,8 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
 
         ctx.channel().attr(CONNECTION_KEY).setIfAbsent(connection);
 
-        connection.getMessageHandler().register(null, EventMsg.class);
+        connection.getMessageHandler().register(null, InitCryptoMessageEvent.class);
+        connection.getMessageHandler().register(null, GenerateKeyMessageEvent.class);
 
         PacketCodec
             .create(OutgoingEvents.HelloComposer)
@@ -41,6 +45,9 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
         var connection = ctx.channel().attr(CONNECTION_KEY).get();
+
+        connection.getMessageHandler().deregister(null, InitCryptoMessageEvent.class);
+        connection.getMessageHandler().deregister(null, GenerateKeyMessageEvent.class);
 
         try {
             connection.close();
