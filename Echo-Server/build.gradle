@@ -11,5 +11,4 @@ apply from: "../root.gradle"
 dependencies {
     implementation project (":Echo-API")
     implementation project (":Echo-Common")
-    implementation 'com.github.lovepigeons:SimpleLogger4j:v1.0.3'
 }

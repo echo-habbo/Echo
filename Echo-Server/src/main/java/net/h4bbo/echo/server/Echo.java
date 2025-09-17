@@ -2,8 +2,9 @@ package net.h4bbo.echo.server;
 
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
-import net.h4bbo.echo.server.events.EventManager;
+import net.h4bbo.echo.server.plugin.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
+import net.h4bbo.echo.server.network.session.ConnectionManager;
 import net.h4bbo.echo.server.plugin.PluginManager;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
@@ -17,6 +18,7 @@ public class Echo {
     public static Properties configuration;
     public static IPluginManager pluginManager;
     public static IEventManager eventManager;
+    public static ConnectionManager connectionManager;
     public static GameServer server;
 
     private static final SimpleLog log;
@@ -26,7 +28,7 @@ public class Echo {
         configuration = new Properties();
         pluginManager = new PluginManager("plugins");
         eventManager = new EventManager();
-        server = new GameServer();
+        connectionManager = new ConnectionManager(eventManager, pluginManager);
     }
 
     public static void boot() {
@@ -43,6 +45,8 @@ public class Echo {
         }
 
         log.success("server.conf found");
+
+
 
         try {
             if (!tryDatabaseConnection()) {
@@ -132,17 +136,35 @@ public class Echo {
         String host = configuration.getProperty("server.host", "0.0.0.0");
         int port = Integer.parseInt(configuration.getProperty("server.port", "30001"));
 
-        server = new GameServer();
-        server.set(host, port);
+        server = new GameServer(host, port, eventManager, pluginManager);
         server.createSocket();
 
         try {
             server.bind();
-            return true; // Note: Should return true if successful!
+            return true;
         } catch (Exception e) {
             log.error("Failed to bind server: " + e.getMessage(), e);
             return false;
         }
     }
 
+    public static Properties getConfiguration() {
+        return configuration;
+    }
+
+    public static IPluginManager getPluginManager() {
+        return pluginManager;
+    }
+
+    public static IEventManager getEventManager() {
+        return eventManager;
+    }
+
+    public static ConnectionManager getConnectionManager() {
+        return connectionManager;
+    }
+
+    public static GameServer getServer() {
+        return server;
+    }
 }

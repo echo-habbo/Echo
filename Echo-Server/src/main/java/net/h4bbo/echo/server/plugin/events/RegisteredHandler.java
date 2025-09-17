@@ -1,7 +1,7 @@
-package net.h4bbo.echo.server.events;
+package net.h4bbo.echo.server.plugin.events;
 
 import net.h4bbo.echo.api.event.EventPriority;
-import net.h4bbo.echo.api.event.IEvent;
+import net.h4bbo.echo.api.event.types.IEvent;
 import net.h4bbo.echo.api.plugin.IPlugin;
 
 import java.lang.reflect.InvocationTargetException;

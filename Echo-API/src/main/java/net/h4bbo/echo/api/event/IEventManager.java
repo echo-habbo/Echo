@@ -1,5 +1,6 @@
 package net.h4bbo.echo.api.event;
 
+import net.h4bbo.echo.api.event.types.IEvent;
 import net.h4bbo.echo.api.plugin.IPlugin;
 
 import java.util.function.Consumer;

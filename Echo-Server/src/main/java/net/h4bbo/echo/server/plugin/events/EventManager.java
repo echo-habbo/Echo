@@ -1,6 +1,8 @@
-package net.h4bbo.echo.server.events;
+package net.h4bbo.echo.server.plugin.events;
 
 import net.h4bbo.echo.api.event.*;
+import net.h4bbo.echo.api.event.types.ICancellableEvent;
+import net.h4bbo.echo.api.event.types.IEvent;
 import net.h4bbo.echo.api.plugin.IPlugin;
 
 import java.lang.reflect.*;
@@ -107,9 +109,9 @@ public class EventManager implements IEventManager {
         List<RegisteredHandler> firedOnce = new ArrayList<>();
 
         for (RegisteredHandler h : snapshot) {
-            // Skip if cancelled and handler asked to ignore
+            // Only skip if cancelled, ignoreCancelled is true, and NOT MONITOR
             if (isCancellable) {
-                if (((ICancellableEvent) ev).isCancelled() && h.ignoreCancelled)
+                if (((ICancellableEvent) ev).isCancelled() && h.ignoreCancelled && h.priority != EventPriority.MONITOR)
                     continue;
             }
             boolean invoked = false;

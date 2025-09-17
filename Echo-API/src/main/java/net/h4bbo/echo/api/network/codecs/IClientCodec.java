@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 public interface IClientCodec extends AutoCloseable {
     String getHeader();
     int getHeaderId();
-    ByteBuf getBuffer();
+    ByteBuf getBufferReader();
 
     String getMessageBody();
     byte[] getReadableBytes();
@@ -16,5 +16,7 @@ public interface IClientCodec extends AutoCloseable {
 
     @Override
     void close(); // implementors can throw Exception if needed
+    IClientCodec copy();
+
 }
 

@@ -3,6 +3,8 @@ package net.h4bbo.echo.server.network;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
+import net.h4bbo.echo.api.event.IEventManager;
+import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
 import net.h4bbo.echo.common.network.codecs.ClientCodec;
 import net.h4bbo.echo.common.network.codecs.PacketCodec;
@@ -13,14 +15,25 @@ import org.oldskooler.simplelogger4j.SimpleLog;
 public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec> {
     public static final SimpleLog log = SimpleLog.of(GameNetworkHandler.class);
     public static final AttributeKey<ConnectionSession> CONNECTION_KEY = AttributeKey.newInstance("CONNECTION_KEY");
+    private final IEventManager eventManager;
+    private final IPluginManager pluginManager;
+
+    public GameNetworkHandler(IEventManager eventManager, IPluginManager pluginManager) {
+        this.eventManager = eventManager;
+        this.pluginManager = pluginManager;
+    }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) {
-        var connection = new ConnectionSession(ctx.channel());
+        var connection = new ConnectionSession(ctx.channel(), this.eventManager, this.pluginManager);
 
         ctx.channel().attr(CONNECTION_KEY).setIfAbsent(connection);
 
-        PacketCodec.create(OutgoingEvents.HelloComposer).send(connection);
+        connection.getMessageHandler().register(null, EventMsg.class);
+
+        PacketCodec
+            .create(OutgoingEvents.HelloComposer)
+            .send(connection);
 
         log.info("Client connected to server: {}", connection.getIpAddress());
     }

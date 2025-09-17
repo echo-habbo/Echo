@@ -1,8 +1,8 @@
 package net.h4bbo.echo.api.event.game.player;
 
-import net.h4bbo.echo.api.event.CancellableEvent;
+import net.h4bbo.echo.api.event.types.ICancellableEvent;
 
-public class PlayerChatEvent extends CancellableEvent {
+public class PlayerChatEvent extends ICancellableEvent {
     private final String playerName;
     private String message;
 

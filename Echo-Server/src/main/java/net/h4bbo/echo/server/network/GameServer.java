@@ -9,6 +9,8 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import net.h4bbo.echo.api.event.IEventManager;
+import net.h4bbo.echo.api.plugin.IPluginManager;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.net.BindException;
@@ -32,13 +34,15 @@ public class GameServer  {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
-    public GameServer() {
-        this.log = SimpleLog.of(GameServer.class);
-    }
+    private final IEventManager eventManager;
+    private final IPluginManager pluginManager;
 
-    public void set(String ip, int port) {
+    public GameServer(String ip, int port, IEventManager eventManager, IPluginManager pluginManager) {
+        this.eventManager = eventManager;
+        this.pluginManager = pluginManager;
         this.ip = ip;
         this.port = port;
+        this.log = SimpleLog.of(GameServer.class);
     }
 
     /**
@@ -55,7 +59,7 @@ public class GameServer  {
 
         this.bootstrap.group(bossGroup, workerGroup)
                 .channel((Epoll.isAvailable()) ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-                .childHandler(new GameChannelInitializer(this))
+                .childHandler(new GameChannelInitializer(this.eventManager, this.pluginManager))
                 .option(ChannelOption.SO_BACKLOG, BACK_LOG)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)

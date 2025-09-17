@@ -5,11 +5,11 @@ import net.h4bbo.echo.api.plugin.IPlugin;
 
 public interface IMessageHandler {
 
-    void register(IPlugin plugin, int headerId, IMessageEvent handler);
+    void register(IPlugin plugin, int headerId, MessageEvent handler);
 
-    <THandler extends IMessageEvent> void register(IPlugin plugin, Class<THandler> handlerClass);
+    <THandler extends MessageEvent> void register(IPlugin plugin, Class<THandler> handlerClass);
 
-    <THandler extends IMessageEvent> int deregister(IPlugin plugin, Class<THandler> handlerClass);
+    <THandler extends MessageEvent> int deregister(IPlugin plugin, Class<THandler> handlerClass);
 
     void handleMessage(IClientCodec packet);
 }

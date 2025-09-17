@@ -3,21 +3,28 @@ package net.h4bbo.echo.server.network;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import net.h4bbo.echo.api.event.IEventManager;
+import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.server.network.codecs.NetworkDecoder;
 import net.h4bbo.echo.server.network.codecs.NetworkEncoder;
 
-public class GameChannelInitializer extends ChannelInitializer<SocketChannel> {
-    private final GameServer server;
+import java.util.concurrent.ConcurrentHashMap;
 
-    public GameChannelInitializer(GameServer server) {
-        this.server = server;
+public class GameChannelInitializer extends ChannelInitializer<SocketChannel> {
+    private final IEventManager eventManager;
+    private final IPluginManager pluginManager;
+
+    public GameChannelInitializer(IEventManager eventManager, IPluginManager pluginManager) {
+        this.eventManager = eventManager;
+        this.pluginManager = pluginManager;
+
     }
 
     @Override
-    protected void initChannel(SocketChannel channel) throws Exception {
+    protected void initChannel(SocketChannel channel) {
         ChannelPipeline pipeline = channel.pipeline();
         pipeline.addLast("gameEncoder", new NetworkEncoder());
         pipeline.addLast("gameDecoder", new NetworkDecoder());
-        pipeline.addLast("clientHandler", new GameNetworkHandler());
+        pipeline.addLast("clientHandler", new GameNetworkHandler(this.eventManager, this.pluginManager));
     }
 }

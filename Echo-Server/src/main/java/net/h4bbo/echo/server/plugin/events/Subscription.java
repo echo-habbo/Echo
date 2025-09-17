@@ -1,4 +1,4 @@
-package net.h4bbo.echo.server.events;
+package net.h4bbo.echo.server.plugin.events;
 
 import java.util.List;
 

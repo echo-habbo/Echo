@@ -10,22 +10,12 @@ import net.h4bbo.echo.common.util.specialised.Base64Encoding;
 public class ClientCodec implements IClientCodec, AutoCloseable {
     private String header;
     private int headerId;
-    private ByteBuf buffer;
 
-    public String getHeader() {
-        return header;
-    }
-
-    public int getHeaderId() {
-        return headerId;
-    }
-
-    public ByteBuf getBuffer() {
-        return buffer;
-    }
+    private ByteBuf bufferReader;
+    private final ByteBuf buffer;
 
     public String getMessageBody() {
-        String consoleText = buffer.toString(ProtocolCodec.getEncoding());
+        String consoleText = bufferReader.toString(ProtocolCodec.getEncoding());
         for (int i = 0; i < 13; i++) {
             consoleText = consoleText.replace(String.valueOf((char)i), "[" + i + "]");
         }
@@ -33,10 +23,10 @@ public class ClientCodec implements IClientCodec, AutoCloseable {
     }
 
     public byte[] getReadableBytes() {
-        buffer.markReaderIndex();
-        byte[] bytes = new byte[buffer.readableBytes()];
-        buffer.readBytes(bytes);
-        buffer.resetReaderIndex();
+        bufferReader.markReaderIndex();
+        byte[] bytes = new byte[bufferReader.readableBytes()];
+        bufferReader.readBytes(bytes);
+        bufferReader.resetReaderIndex();
         return bytes;
     }
 
@@ -45,7 +35,8 @@ public class ClientCodec implements IClientCodec, AutoCloseable {
     }
 
     public ClientCodec(ByteBuf buffer) {
-        this.buffer = buffer;
+        this.bufferReader = buffer;
+        this.buffer = buffer.copy();
         this.header = new String(new byte[]{buffer.readByte(), buffer.readByte()}, ProtocolCodec.getEncoding());
         this.headerId = Base64Encoding.decodeInt32(this.header.getBytes());
     }
@@ -150,7 +141,7 @@ public class ClientCodec implements IClientCodec, AutoCloseable {
 
     private boolean getBool() {
         try {
-            return buffer.readByte() == 'I';
+            return bufferReader.readByte() == 'I';
         } catch (Exception e) {
             return false;
         }
@@ -159,7 +150,7 @@ public class ClientCodec implements IClientCodec, AutoCloseable {
     private byte[] getBytes(int len) {
         try {
             byte[] payload = new byte[len];
-            buffer.readBytes(payload);
+            bufferReader.readBytes(payload);
             return payload;
         } catch (Exception e) {
             return new byte[0];
@@ -169,14 +160,32 @@ public class ClientCodec implements IClientCodec, AutoCloseable {
     private byte[] readBytesInternal(int len) {
         try {
             byte[] payload = new byte[len];
-            buffer.readBytes(payload);
+            bufferReader.readBytes(payload);
             return payload;
         } catch (Exception e) {
             return new byte[0];
         }
     }
 
+    public String getHeader() {
+        return header;
+    }
+
+    public int getHeaderId() {
+        return headerId;
+    }
+
+    public ByteBuf getBufferReader() {
+        return bufferReader;
+    }
+
     public void close() {
+        bufferReader.release();
         buffer.release();
+    }
+
+    @Override
+    public IClientCodec copy() {
+        return new ClientCodec(this.buffer.copy());
     }
 }
