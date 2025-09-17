@@ -2,6 +2,7 @@ package net.h4bbo.echo.server;
 
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
+import net.h4bbo.echo.server.plugin.ExamplePlugin;
 import net.h4bbo.echo.server.plugin.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
 import net.h4bbo.echo.server.network.session.ConnectionManager;
@@ -26,8 +27,8 @@ public class Echo {
     static {
         log = SimpleLog.of(Echo.class);
         configuration = new Properties();
-        pluginManager = new PluginManager("plugins");
         eventManager = new EventManager();
+        pluginManager = new PluginManager("plugins", eventManager);
         connectionManager = new ConnectionManager(eventManager, pluginManager);
     }
 
@@ -46,6 +47,8 @@ public class Echo {
 
         log.success("server.conf found");
 
+        log.debug("Loading test plugin");
+        pluginManager.loadPluginInstance(new ExamplePlugin());
 
 
         try {

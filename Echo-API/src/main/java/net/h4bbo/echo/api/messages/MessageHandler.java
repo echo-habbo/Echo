@@ -3,7 +3,7 @@ package net.h4bbo.echo.api.messages;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
-import net.h4bbo.echo.api.plugin.IPlugin;
+import net.h4bbo.echo.api.plugin.JavaPlugin;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
@@ -25,7 +25,7 @@ public class MessageHandler implements IMessageHandler {
         this.pluginManager = pluginManager;
     }
 
-    public void register(IPlugin plugin, int headerId, MessageEvent handler) {
+    public void register(JavaPlugin plugin, int headerId, MessageEvent handler) {
         // Objects.requireNonNull(plugin);
         Objects.requireNonNull(handler);
 
@@ -41,7 +41,7 @@ public class MessageHandler implements IMessageHandler {
     }
 
     // Registers a handler by type. The handler must implement IMessageEvent and expose a public HeaderId property.
-    public <THandler extends MessageEvent> void register(IPlugin plugin, Class<THandler> handlerClass) {
+    public <THandler extends MessageEvent> void register(JavaPlugin plugin, Class<THandler> handlerClass) {
         try {
             Constructor<THandler> ctor = handlerClass.getDeclaredConstructor();
             THandler instance = ctor.newInstance(); // you must have these!
@@ -54,7 +54,7 @@ public class MessageHandler implements IMessageHandler {
 
 
     // Deregisters all handlers of the specified type.
-    public <THandler extends MessageEvent> int deregister(IPlugin plugin, Class<THandler> handlerClass) {
+    public <THandler extends MessageEvent> int deregister(JavaPlugin plugin, Class<THandler> handlerClass) {
         int headerId;
         try {
             THandler instance = handlerClass.getDeclaredConstructor().newInstance();

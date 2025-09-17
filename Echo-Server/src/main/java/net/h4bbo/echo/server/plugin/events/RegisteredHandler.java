@@ -2,14 +2,14 @@ package net.h4bbo.echo.server.plugin.events;
 
 import net.h4bbo.echo.api.event.EventPriority;
 import net.h4bbo.echo.api.event.types.IEvent;
-import net.h4bbo.echo.api.plugin.IPlugin;
+import net.h4bbo.echo.api.plugin.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
 public class RegisteredHandler {
-    public final IPlugin plugin;
+    public final JavaPlugin plugin;
     public final Object target;
     public final Method method; // For attribute-based
     public final Consumer<IEvent> consumer; // For lambda-style
@@ -18,7 +18,7 @@ public class RegisteredHandler {
     public final boolean ignoreCancelled;
     public final boolean once;
 
-    public RegisteredHandler(IPlugin plugin, Object target, Method method, Consumer<IEvent> consumer, Class<?> eventType, EventPriority priority, boolean ignoreCancelled, boolean once) {
+    public RegisteredHandler(JavaPlugin plugin, Object target, Method method, Consumer<IEvent> consumer, Class<?> eventType, EventPriority priority, boolean ignoreCancelled, boolean once) {
         this.plugin = plugin;
         this.target = target;
         this.method = method;

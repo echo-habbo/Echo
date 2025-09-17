@@ -1,7 +1,7 @@
 package net.h4bbo.echo.api.event;
 
 import net.h4bbo.echo.api.event.types.IEvent;
-import net.h4bbo.echo.api.plugin.IPlugin;
+import net.h4bbo.echo.api.plugin.JavaPlugin;
 
 import java.util.function.Consumer;
 
@@ -10,7 +10,7 @@ public interface IEventManager {
     /**
      * Scan an object for @EventHandler methods and register them.
      */
-    void register(IPlugin plugin, Object listener);
+    void register(JavaPlugin plugin, Object listener);
 
     /**
      * Remove all handlers belonging to a given listener instance.
@@ -21,7 +21,7 @@ public interface IEventManager {
      * Fluent subscription without annotations/reflection.
      */
     <TEvent extends IEvent> AutoCloseable subscribe(
-            IPlugin plugin,
+            JavaPlugin plugin,
             Consumer<TEvent> handler,
             Class<TEvent> eventType,
             EventPriority priority,

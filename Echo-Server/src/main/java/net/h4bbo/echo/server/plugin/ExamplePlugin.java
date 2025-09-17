@@ -1,31 +1,29 @@
 package net.h4bbo.echo.server.plugin;
 
+import net.h4bbo.echo.api.event.EventHandler;
+import net.h4bbo.echo.api.event.game.connection.ClientConnectedEvent;
 import net.h4bbo.echo.api.plugin.DependsOnAttribute;
-import net.h4bbo.echo.api.plugin.IPlugin;
+import net.h4bbo.echo.api.plugin.JavaPlugin;
+import org.oldskooler.simplelogger4j.SimpleLog;
 
 // Example plugin implementation
 @DependsOnAttribute({"CorePlugin", "DatabasePlugin"})
-public class ExamplePlugin implements IPlugin {
+public class ExamplePlugin extends JavaPlugin {
 
     @Override
     public void load() {
         System.out.println("ExamplePlugin loaded!");
-        // Initialize resources, register services, etc.
+        this.getEventManager().register(this, this);
+    }
+
+    @EventHandler
+    public void onClientConnected(ClientConnectedEvent event) {
+        SimpleLog.of(ExamplePlugin.class).success("Client {} connected", event.getSession().getChannel().remoteAddress().toString());
     }
 
     @Override
     public void unload() {
         System.out.println("ExamplePlugin unloaded!");
         // Cleanup resources, unregister services, etc.
-    }
-
-    @Override
-    public String getName() {
-        return "ExamplePlugin";
-    }
-
-    @Override
-    public String getVersion() {
-        return "1.2.0";
     }
 }

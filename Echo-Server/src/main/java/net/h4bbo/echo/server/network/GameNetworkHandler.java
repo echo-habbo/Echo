@@ -4,6 +4,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import net.h4bbo.echo.api.event.IEventManager;
+import net.h4bbo.echo.api.event.game.connection.ClientConnectedEvent;
+import net.h4bbo.echo.api.event.game.connection.ClientDisconnectedEvent;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
@@ -32,6 +34,12 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
 
         ctx.channel().attr(CONNECTION_KEY).setIfAbsent(connection);
 
+        var isCancelled = this.eventManager.publish(new ClientConnectedEvent(connection));
+
+        if (isCancelled) {
+            return;
+        }
+
         connection.getMessageHandler().register(null, InitCryptoMessageEvent.class);
         connection.getMessageHandler().register(null, GenerateKeyMessageEvent.class);
 
@@ -45,6 +53,12 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
         var connection = ctx.channel().attr(CONNECTION_KEY).get();
+
+        var isCancelled = this.eventManager.publish(new ClientDisconnectedEvent(connection));
+
+        if (isCancelled) {
+            return;
+        }
 
         connection.getMessageHandler().deregister(null, InitCryptoMessageEvent.class);
         connection.getMessageHandler().deregister(null, GenerateKeyMessageEvent.class);

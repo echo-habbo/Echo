@@ -16,6 +16,8 @@ public interface IPluginManager {
      */
     boolean loadPlugin(String jarPath);
 
+    boolean loadPluginInstance(JavaPlugin pluginInstance);
+
     /**
      * Unload a specific plugin
      * @param pluginName the name of the plugin
@@ -42,13 +44,13 @@ public interface IPluginManager {
      * @param name the name of the plugin
      * @return the plugin instance, or null if not loaded
      */
-    IPlugin getPlugin(String name);
+    JavaPlugin getPlugin(String name);
 
     /**
      * Get all loaded plugins
      * @return map of plugin names to plugin instances
      */
-    Map<String, IPlugin> getAllPlugins();
+    Map<String, JavaPlugin> getAllPlugins();
 
     /**
      * Check if plugin is loaded

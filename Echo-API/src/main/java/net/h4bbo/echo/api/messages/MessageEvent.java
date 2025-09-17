@@ -12,7 +12,7 @@ public abstract class MessageEvent {
     private IPluginManager pluginManager;
 
     public void inject(IEventManager eventManager, IPluginManager pluginManager) {
-        if (!Objects.isNull(this.eventManager) || !Objects.isNull(this.pluginManager)) throw new RuntimeException("classes have already injected");
+        if (!Objects.isNull(this.eventManager) || !Objects.isNull(this.pluginManager)) throw new RuntimeException("message event classes have already injected");
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
     }

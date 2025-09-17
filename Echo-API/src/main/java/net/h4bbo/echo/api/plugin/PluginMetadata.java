@@ -7,12 +7,12 @@ public class PluginMetadata {
     private final String name;
     private final String version;
     private final String[] dependencies;
-    private final IPlugin instance;
+    private final JavaPlugin instance;
     private final ClassLoader classLoader;
     private final String jarPath;
 
     public PluginMetadata(String name, String version, String[] dependencies,
-                          IPlugin instance, ClassLoader classLoader, String jarPath) {
+                          JavaPlugin instance, ClassLoader classLoader, String jarPath) {
         this.name = name;
         this.version = version;
         this.dependencies = dependencies != null ? dependencies : new String[0];
@@ -34,7 +34,7 @@ public class PluginMetadata {
         return dependencies;
     }
 
-    public IPlugin getInstance() {
+    public JavaPlugin getInstance() {
         return instance;
     }
 

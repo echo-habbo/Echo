@@ -1,6 +1,8 @@
 package net.h4bbo.echo.server.plugin;
 
+import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.*;
+import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,18 +11,18 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class PluginManager implements IPluginManager {
-    private static final Logger LOGGER = Logger.getLogger(PluginManager.class.getName());
+    private static final SimpleLog log = SimpleLog.of(PluginManager.class);
 
     private final String pluginDirectory;
     private final Map<String, PluginMetadata> loadedPlugins = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> dependencyGraph = new ConcurrentHashMap<>();
+    private final IEventManager eventManager;
 
-    public PluginManager(String pluginDirectory) {
+    public PluginManager(String pluginDirectory, IEventManager eventManager) {
         this.pluginDirectory = pluginDirectory;
+        this.eventManager = eventManager;
     }
 
     /**
@@ -35,13 +37,13 @@ public class PluginManager implements IPluginManager {
         }
 
         if (!dirExists || !dir.isDirectory()) {
-            LOGGER.warning("plugin directory does not exist: " + pluginDirectory);
+            log.warn("plugin directory does not exist: " + pluginDirectory);
             return;
         }
 
         File[] jarFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".jar"));
         if (jarFiles == null) {
-            LOGGER.info("No JAR files found in plugin directory");
+            log.info("No JAR files found in plugin directory");
             return;
         }
 
@@ -54,7 +56,7 @@ public class PluginManager implements IPluginManager {
                     candidates.put(candidate.name, candidate);
                 }
             } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Error scanning plugin: " + jarFile.getName(), e);
+                log.error("Error scanning plugin: " + jarFile.getName(), e);
             }
         }
 
@@ -66,7 +68,7 @@ public class PluginManager implements IPluginManager {
                 try {
                     loadPlugin(candidate);
                 } catch (Exception e) {
-                    LOGGER.log(Level.SEVERE, "Error loading plugin: " + pluginName, e);
+                    log.error("Error loading plugin: " + pluginName, e);
                 }
             }
         }
@@ -86,14 +88,14 @@ public class PluginManager implements IPluginManager {
             // Check dependencies
             for (String dep : candidate.dependencies) {
                 if (!loadedPlugins.containsKey(dep)) {
-                    LOGGER.severe("Dependency not loaded: " + dep + " for plugin: " + candidate.name);
+                    log.error("Dependency not loaded: " + dep + " for plugin: " + candidate.name);
                     return false;
                 }
             }
 
             return loadPlugin(candidate);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error loading plugin: " + jarPath, e);
+            log.error("Error loading plugin: " + jarPath, e);
             return false;
         }
     }
@@ -104,14 +106,14 @@ public class PluginManager implements IPluginManager {
     public boolean unloadPlugin(String pluginName) {
         PluginMetadata metadata = loadedPlugins.get(pluginName);
         if (metadata == null) {
-            LOGGER.warning("plugin not loaded: " + pluginName);
+            log.error("plugin not loaded due to bad metadata: " + pluginName);
             return false;
         }
 
         // Check for dependents
         Set<String> dependents = findDependents(pluginName);
         if (!dependents.isEmpty()) {
-            LOGGER.severe("Cannot unload plugin " + pluginName +
+            log.error("Cannot unload plugin " + pluginName +
                     " - other plugins depend on it: " + dependents);
             return false;
         }
@@ -126,14 +128,14 @@ public class PluginManager implements IPluginManager {
                 try {
                     ((PluginClassLoader) metadata.getClassLoader()).close();
                 } catch (IOException e) {
-                    LOGGER.log(Level.WARNING, "Error closing class loader", e);
+                    log.error("Error closing class loader", e);
                 }
             }
 
-            LOGGER.info("Unloaded plugin: " + pluginName);
+            log.info("Unloaded plugin: " + pluginName);
             return true;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error unloading plugin: " + pluginName, e);
+            log.error("Error unloading plugin: " + pluginName, e);
             return false;
         }
     }
@@ -144,7 +146,7 @@ public class PluginManager implements IPluginManager {
     public boolean reloadPlugin(String pluginName) {
         PluginMetadata metadata = loadedPlugins.get(pluginName);
         if (metadata == null) {
-            LOGGER.warning("plugin not loaded: " + pluginName);
+            log.error("plugin not loaded: " + pluginName);
             return false;
         }
 
@@ -173,7 +175,7 @@ public class PluginManager implements IPluginManager {
     /**
      * Get loaded plugin by name
      */
-    public IPlugin getPlugin(String name) {
+    public JavaPlugin getPlugin(String name) {
         PluginMetadata metadata = loadedPlugins.get(name);
         return metadata != null ? metadata.getInstance() : null;
     }
@@ -181,8 +183,8 @@ public class PluginManager implements IPluginManager {
     /**
      * Get all loaded plugins
      */
-    public Map<String, IPlugin> getAllPlugins() {
-        Map<String, IPlugin> plugins = new HashMap<>();
+    public Map<String, JavaPlugin> getAllPlugins() {
+        Map<String, JavaPlugin> plugins = new HashMap<>();
         for (Map.Entry<String, PluginMetadata> entry : loadedPlugins.entrySet()) {
             plugins.put(entry.getKey(), entry.getValue().getInstance());
         }
@@ -215,7 +217,7 @@ public class PluginManager implements IPluginManager {
             try {
                 unloadPlugin(pluginName);
             } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Error unloading plugin: " + pluginName, e);
+                log.error("Error unloading plugin: " + pluginName, e);
             }
         }
     }
@@ -227,7 +229,7 @@ public class PluginManager implements IPluginManager {
         String version;
         String[] dependencies;
         String jarPath;
-        Class<? extends IPlugin> pluginClass;
+        Class<? extends JavaPlugin> pluginClass;
     }
 
     private PluginCandidate scanPlugin(File jarFile) throws Exception {
@@ -247,16 +249,16 @@ public class PluginManager implements IPluginManager {
 
                     try {
                         Class<?> clazz = classLoader.loadClass(className);
-                        if (IPlugin.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
+                        if (JavaPlugin.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
                             @SuppressWarnings("unchecked")
-                            Class<? extends IPlugin> pluginClass = (Class<? extends IPlugin>) clazz;
+                            Class<? extends JavaPlugin> pluginClass = (Class<? extends JavaPlugin>) clazz;
 
                             PluginCandidate candidate = new PluginCandidate();
                             candidate.pluginClass = pluginClass;
                             candidate.jarPath = jarFile.getAbsolutePath();
 
                             // Get plugin instance to read metadata
-                            IPlugin tempInstance = pluginClass.getDeclaredConstructor().newInstance();
+                            JavaPlugin tempInstance = pluginClass.getDeclaredConstructor().newInstance();
                             candidate.name = tempInstance.getName();
                             candidate.version = tempInstance.getVersion();
 
@@ -278,7 +280,7 @@ public class PluginManager implements IPluginManager {
     private boolean loadPlugin(PluginCandidate candidate) throws Exception {
         // Check if already loaded
         if (loadedPlugins.containsKey(candidate.name)) {
-            LOGGER.warning("plugin already loaded: " + candidate.name);
+            log.error("plugin already loaded: " + candidate.name);
             return false;
         }
 
@@ -289,9 +291,9 @@ public class PluginManager implements IPluginManager {
                 new URL[]{jarUrl}, getClass().getClassLoader(), candidate.name);
 
         // Load and instantiate plugin
-        Class<? extends IPlugin> pluginClass = classLoader.loadClass(candidate.pluginClass.getName())
-                .asSubclass(IPlugin.class);
-        IPlugin plugin = pluginClass.getDeclaredConstructor().newInstance();
+        Class<? extends JavaPlugin> pluginClass = classLoader.loadClass(candidate.pluginClass.getName())
+                .asSubclass(JavaPlugin.class);
+        JavaPlugin plugin = pluginClass.getDeclaredConstructor().newInstance();
 
         // Create metadata
         PluginMetadata metadata = new PluginMetadata(
@@ -303,10 +305,55 @@ public class PluginManager implements IPluginManager {
         dependencyGraph.put(candidate.name, new HashSet<>(Arrays.asList(candidate.dependencies)));
 
         // Load the plugin
-        plugin.load();
-
-        LOGGER.info("Loaded plugin: " + candidate.name + " v" + candidate.version);
+        enablePlugin(plugin);
         return true;
+    }
+
+    /**
+     * Add a plugin instance directly.
+     * Useful for testing or dynamically created plugins.
+     */
+    public boolean loadPluginInstance(JavaPlugin pluginInstance) {
+        if (pluginInstance == null) return false;
+
+        String name = pluginInstance.getName();
+        if (loadedPlugins.containsKey(name)) {
+            log.error("plugin already loaded: " + name);
+            return false;
+        }
+
+        // Handle dependencies if possible (optional)
+        DependsOnAttribute dependsOn = pluginInstance.getClass().getAnnotation(DependsOnAttribute.class);
+        String[] dependencies = dependsOn != null ? dependsOn.value() : new String[0];
+
+        // Create PluginMetadata (no JAR, use null or empty for class loader/jarPath)
+        PluginMetadata metadata = new PluginMetadata(
+                name,
+                pluginInstance.getVersion(),
+                dependencies,
+                pluginInstance,
+                pluginInstance.getClass().getClassLoader(),
+                null // no jar path
+        );
+
+        loadedPlugins.put(name, metadata);
+        dependencyGraph.put(name, new HashSet<>(Arrays.asList(dependencies)));
+
+        try {
+            enablePlugin(pluginInstance);
+            return true;
+        } catch (Exception e) {
+            log.error("Error loading plugin instance: " + name, e);
+            loadedPlugins.remove(name);
+            dependencyGraph.remove(name);
+            return false;
+        }
+    }
+
+    private void enablePlugin(JavaPlugin pluginInstance) {
+        pluginInstance.inject(this.eventManager, this);
+        pluginInstance.load();
+        log.info("Loaded plugin: {} {}", pluginInstance.getName(), pluginInstance.getVersion());
     }
 
     private List<String> resolveDependencyOrder(Map<String, PluginCandidate> candidates) {
@@ -341,7 +388,7 @@ public class PluginManager implements IPluginManager {
                 if (candidates.containsKey(dependency)) {
                     resolveDependencyOrder(dependency, candidates, result, visited, visiting);
                 } else if (!loadedPlugins.containsKey(dependency)) {
-                    LOGGER.warning("Missing dependency: " + dependency + " for plugin: " + pluginName);
+                    log.error("Missing dependency: " + dependency + " for plugin: " + pluginName);
                 }
             }
         }

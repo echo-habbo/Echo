@@ -3,7 +3,7 @@ package net.h4bbo.echo.server.plugin.events;
 import net.h4bbo.echo.api.event.*;
 import net.h4bbo.echo.api.event.types.ICancellableEvent;
 import net.h4bbo.echo.api.event.types.IEvent;
-import net.h4bbo.echo.api.plugin.IPlugin;
+import net.h4bbo.echo.api.plugin.JavaPlugin;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -19,7 +19,7 @@ public class EventManager implements IEventManager {
     private final Map<Class<?>, List<RegisteredHandler>> handlers = new ConcurrentHashMap<>();
 
     @Override
-    public void register(IPlugin plugin, Object listener) {
+    public void register(JavaPlugin plugin, Object listener) {
         if (listener == null) throw new IllegalArgumentException("listener is null");
         Method[] methods = listener.getClass().getDeclaredMethods();
 
@@ -68,7 +68,7 @@ public class EventManager implements IEventManager {
      * Fluent subscription without annotations/reflection.
      */
     public <TEvent extends IEvent> AutoCloseable subscribe(
-            IPlugin plugin,
+            JavaPlugin plugin,
             Consumer<TEvent> handler,
             Class<TEvent> eventType,
             EventPriority priority,
