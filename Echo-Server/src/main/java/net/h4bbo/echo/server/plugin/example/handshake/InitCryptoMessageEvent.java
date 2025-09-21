@@ -1,4 +1,4 @@
-package net.h4bbo.echo.server.implmentation.handshake;
+package net.h4bbo.echo.server.plugin.example.handshake;
 
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;

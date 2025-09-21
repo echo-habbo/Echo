@@ -4,17 +4,17 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import net.h4bbo.echo.api.event.IEventManager;
-import net.h4bbo.echo.api.event.game.connection.ClientConnectedEvent;
-import net.h4bbo.echo.api.event.game.connection.ClientDisconnectedEvent;
+import net.h4bbo.echo.api.event.types.client.ClientConnectedEvent;
+import net.h4bbo.echo.api.event.types.client.ClientDisconnectedEvent;
+import net.h4bbo.echo.api.event.types.client.ClientReceivedMessageEvent;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
 import net.h4bbo.echo.common.network.codecs.ClientCodec;
 import net.h4bbo.echo.common.network.codecs.PacketCodec;
-import net.h4bbo.echo.server.implmentation.handshake.GenerateKeyMessageEvent;
-import net.h4bbo.echo.server.implmentation.handshake.InitCryptoMessageEvent;
+import net.h4bbo.echo.server.plugin.example.handshake.GenerateKeyMessageEvent;
+import net.h4bbo.echo.server.plugin.example.handshake.InitCryptoMessageEvent;
 import net.h4bbo.echo.server.network.session.ConnectionSession;
-import net.h4bbo.echo.server.plugin.ExamplePlugin;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec> {
@@ -39,9 +39,6 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
         if (isCancelled) {
             return;
         }
-
-        connection.getMessageHandler().register(null, InitCryptoMessageEvent.class);
-        connection.getMessageHandler().register(null, GenerateKeyMessageEvent.class);
 
         PacketCodec
             .create(OutgoingEvents.HelloComposer)
@@ -75,6 +72,13 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ClientCodec msg) throws Exception {
         var connection = ctx.channel().attr(CONNECTION_KEY).get();
+
+        var isCancelled = this.eventManager.publish(new ClientReceivedMessageEvent(connection, msg));
+
+        if (isCancelled) {
+            return;
+        }
+
         connection.getMessageHandler().handleMessage(msg);
     }
 }

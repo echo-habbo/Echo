@@ -1,5 +1,6 @@
 package net.h4bbo.echo.server.game.player;
 
+import net.h4bbo.echo.api.commands.CommandSender;
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.network.session.IConnectionSend;
@@ -8,7 +9,7 @@ import net.h4bbo.echo.server.network.session.ConnectionSession;
 
 import java.util.concurrent.CompletableFuture;
 
-public class Player implements IPlayer, IConnectionSend {
+public class Player implements IPlayer {
     private IConnectionSession connection;
 
     public Player(ConnectionSession connectionSession) {

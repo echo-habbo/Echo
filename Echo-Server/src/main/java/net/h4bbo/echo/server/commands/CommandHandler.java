@@ -1,5 +1,6 @@
 package net.h4bbo.echo.server.commands;
 
+import net.h4bbo.echo.api.commands.Command;
 import net.h4bbo.echo.common.util.extensions.CollectionUtil;
 
 import java.util.Arrays;
@@ -68,7 +69,7 @@ public class CommandHandler {
     }
 
     public void register(Command cmd) {
-        commands.put(cmd.name().toLowerCase(), cmd);
+        commands.putIfAbsent(cmd.name().toLowerCase(), cmd);
     }
 
     public void execute(String line) {

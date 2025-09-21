@@ -1,4 +1,4 @@
-package net.h4bbo.echo.api.event.game.player;
+package net.h4bbo.echo.api.event.types.player;
 
 import net.h4bbo.echo.api.event.types.ICancellableEvent;
 

@@ -1,4 +1,4 @@
-package net.h4bbo.echo.server.commands;
+package net.h4bbo.echo.api.commands;
 
 import java.util.List;
 

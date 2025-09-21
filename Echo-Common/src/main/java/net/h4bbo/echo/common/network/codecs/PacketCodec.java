@@ -152,7 +152,7 @@ public class PacketCodec implements IPacketCodec {
         }
     }
 
-    private static Charset getProtocolEncoding() {
+    public static Charset getProtocolEncoding() {
         return java.nio.charset.StandardCharsets.UTF_8;
     }
 }

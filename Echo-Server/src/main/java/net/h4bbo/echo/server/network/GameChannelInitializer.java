@@ -23,8 +23,8 @@ public class GameChannelInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel channel) {
         ChannelPipeline pipeline = channel.pipeline();
-        pipeline.addLast("gameEncoder", new NetworkEncoder());
-        pipeline.addLast("gameDecoder", new NetworkDecoder());
+        pipeline.addLast("gameEncoder", new NetworkEncoder(this.eventManager, this.pluginManager));
+        pipeline.addLast("gameDecoder", new NetworkDecoder(this.eventManager, this.pluginManager));
         pipeline.addLast("clientHandler", new GameNetworkHandler(this.eventManager, this.pluginManager));
     }
 }

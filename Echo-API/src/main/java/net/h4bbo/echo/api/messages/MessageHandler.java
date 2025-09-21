@@ -1,6 +1,7 @@
 package net.h4bbo.echo.api.messages;
 
 import net.h4bbo.echo.api.event.IEventManager;
+import net.h4bbo.echo.api.event.types.client.ClientReceivedMessageEvent;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
@@ -83,6 +84,7 @@ public class MessageHandler implements IMessageHandler {
     public void handleMessage(IClientCodec packet) {
         try (packet) {
             List<MessageEvent> handlers = events.get(packet.getHeaderId());
+
             if (handlers == null || handlers.isEmpty()) {
                 log.debug("Unknown: [{}] {} / {}", packet.getHeaderId(), packet.getHeader(), packet.getMessageBody());
                 return;

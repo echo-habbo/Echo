@@ -1,15 +1,16 @@
-package net.h4bbo.echo.server.implmentation.handshake;
+package net.h4bbo.echo.server.plugin.example.handshake;
 
 import net.h4bbo.echo.api.game.player.IPlayer;
+import net.h4bbo.echo.api.messages.IMessageHandler;
 import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.common.network.codecs.PacketCodec;
 
-public class GenerateKeyMessageEvent extends MessageEvent {
+public class GetSessionParamsMessageEvent extends MessageEvent {
     @Override
     public int getHeaderId() {
-        return 202;
+        return 181;
     }
 
     @Override
@@ -36,6 +37,6 @@ public class GenerateKeyMessageEvent extends MessageEvent {
                 .send(player);
 
         // Not needed after handshake
-        player.getConnection().getMessageHandler().deregister(null, GenerateKeyMessageEvent.class);
+        player.getConnection().getMessageHandler().deregister(null, GetSessionParamsMessageEvent.class);
     }
 }

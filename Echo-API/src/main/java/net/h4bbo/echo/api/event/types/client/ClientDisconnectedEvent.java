@@ -1,4 +1,4 @@
-package net.h4bbo.echo.api.event.game.connection;
+package net.h4bbo.echo.api.event.types.client;
 
 import net.h4bbo.echo.api.event.types.IEvent;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
