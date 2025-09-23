@@ -16,6 +16,7 @@ public class GetSessionParamsMessageEvent extends MessageEvent {
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
         PacketCodec.create(257)
+                .append(DataCodec.VL64_INT, 9) // 9 rules
                 .append(DataCodec.VL64_INT, 1)
                 .append(DataCodec.BOOL, false)
                 .append(DataCodec.VL64_INT, 2)
@@ -33,7 +34,7 @@ public class GetSessionParamsMessageEvent extends MessageEvent {
                 .append(DataCodec.VL64_INT, 8)
                 .append(DataCodec.STRING, "")
                 .append(DataCodec.VL64_INT, 9)
-                .append(DataCodec.BOOL, true) // Wether tutorial is enabled or not
+                .append(DataCodec.BOOL, true) // Whether tutorial is enabled or not
                 .send(player);
 
         // Not needed after handshake
