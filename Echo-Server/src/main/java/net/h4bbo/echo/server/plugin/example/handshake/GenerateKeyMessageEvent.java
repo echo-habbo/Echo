@@ -5,9 +5,7 @@ import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.common.network.codecs.PacketCodec;
-import net.h4bbo.echo.server.plugin.example.ExamplePlugin;
-import net.h4bbo.echo.server.plugin.example.KeyGenerator;
-import net.h4bbo.echo.server.plugin.example.RC4;
+import net.h4bbo.echo.server.plugin.example.EncryptionPlugin;
 
 public class GenerateKeyMessageEvent extends MessageEvent {
     @Override
@@ -17,15 +15,34 @@ public class GenerateKeyMessageEvent extends MessageEvent {
 
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
-        ExamplePlugin.Key = KeyGenerator.generateKey();
+        var encryptionPlugin = (EncryptionPlugin) this.getPlugin();
 
-        PacketCodec.create(1)
-                .append(DataCodec.BYTES, ExamplePlugin.Key)
-                .send(player);
-
-        ExamplePlugin.rc4 = new RC4(ExamplePlugin.Key);
+        if (encryptionPlugin == null) {
+            player.getConnection().close();
+            return;
+        }
 
         // Not needed after handshake
-        player.getConnection().getMessageHandler().deregister(null, GenerateKeyMessageEvent.class);
+        player.getConnection().getMessageHandler().deregister(encryptionPlugin, GenerateKeyMessageEvent.class);
+
+        // Needed after handshake
+        player.getConnection().getMessageHandler().register(encryptionPlugin, GetSessionParamsMessageEvent.class);
+        player.getConnection().getMessageHandler().register(encryptionPlugin, GetDateMessageEvent.class);
+        player.getConnection().getMessageHandler().register(encryptionPlugin, GetAvailableSetsMessageEvent.class);
+
+        var rc4Holder = encryptionPlugin
+                .getEncryptionHolders()
+                .get(player.getConnection().getChannel().id());
+
+        if (rc4Holder == null) {
+            player.getConnection().close();
+            return;
+        }
+
+        PacketCodec.create(1)
+                .append(DataCodec.BYTES, rc4Holder.key)
+                .send(player);
+
+        rc4Holder.setEncryptionReady(true);
     }
 }

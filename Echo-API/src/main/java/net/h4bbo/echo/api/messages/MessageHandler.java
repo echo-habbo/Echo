@@ -32,7 +32,8 @@ public class MessageHandler implements IMessageHandler {
 
         handler.inject(
                 this.eventManager,
-                this.pluginManager
+                this.pluginManager,
+                plugin
         );
 
         List<MessageEvent> list = events.computeIfAbsent(headerId, k -> new ArrayList<>());

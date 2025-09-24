@@ -2,7 +2,7 @@ package net.h4bbo.echo.server;
 
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
-import net.h4bbo.echo.server.plugin.example.ExamplePlugin;
+import net.h4bbo.echo.server.plugin.example.EncryptionPlugin;
 import net.h4bbo.echo.server.plugin.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
 import net.h4bbo.echo.server.network.session.ConnectionManager;
@@ -48,7 +48,7 @@ public class Echo {
         log.success("server.conf found");
 
         log.debug("Loading test plugin");
-        pluginManager.loadPluginInstance(new ExamplePlugin());
+        pluginManager.loadPluginInstance(new EncryptionPlugin());
 
 
         try {
