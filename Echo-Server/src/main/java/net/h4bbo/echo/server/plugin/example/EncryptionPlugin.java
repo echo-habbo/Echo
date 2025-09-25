@@ -7,10 +7,12 @@ import net.h4bbo.echo.api.event.types.client.*;
 import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
 import net.h4bbo.echo.api.plugin.DependsOnAttribute;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
-import net.h4bbo.echo.common.network.codecs.PacketCodec;
 import net.h4bbo.echo.server.plugin.example.handshake.InitCryptoMessageEvent;
+import net.h4bbo.echo.storage.StorageContext;
+import net.h4bbo.echo.storage.models.user.User;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,7 +32,7 @@ public class EncryptionPlugin extends JavaPlugin {
     public void load() {
         this.logger = SimpleLog.of(EncryptionPlugin.class);
         this.logger.info("ExamplePlugin loaded!");
-
+        
         this.getEventManager().register(this, this);
     }
 
@@ -52,7 +54,7 @@ public class EncryptionPlugin extends JavaPlugin {
         );
 
         event.getConnection().getMessageHandler().register(this, InitCryptoMessageEvent.class);
-        this.logger.debug("[EncryptionPlugin] Client {} connected", event.getConnection().getChannel().remoteAddress().toString());
+        this.logger.info("[EncryptionPlugin] Client {} connected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
@@ -61,7 +63,7 @@ public class EncryptionPlugin extends JavaPlugin {
                 event.getConnection().getChannel().id()
         );
 
-        this.logger.debug("[EncryptionPlugin] Client {} disconnected", event.getConnection().getChannel().remoteAddress().toString());
+        this.logger.info("[EncryptionPlugin] Client {} disconnected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
@@ -80,11 +82,11 @@ public class EncryptionPlugin extends JavaPlugin {
 
         var deciphered = rc4Holder.rc4.decipher(message);
         var buffer = Unpooled.buffer(deciphered.length);
-        buffer.writeBytes(deciphered);
 
+        buffer.writeBytes(deciphered);
         event.setBuffer(buffer);
 
-        this.logger.success("[EncryptionPlugin] Client decipher: {}", new String(message, ProtocolCodec.getEncoding()));
+        this.logger.debug("[EncryptionPlugin] Client decipher: {}", new String(message, ProtocolCodec.getEncoding()));
     }
 
     public Map<ChannelId, RC4Holder> getEncryptionHolders() {

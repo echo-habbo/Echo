@@ -4,7 +4,8 @@ import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
-import net.h4bbo.echo.common.network.codecs.PacketCodec;
+import net.h4bbo.echo.server.plugin.example.user.LoginMessageEvent;
+import net.h4bbo.echo.storage.codecs.PacketCodec;
 import net.h4bbo.echo.server.plugin.example.EncryptionPlugin;
 
 public class GenerateKeyMessageEvent extends MessageEvent {
@@ -29,6 +30,7 @@ public class GenerateKeyMessageEvent extends MessageEvent {
         player.getConnection().getMessageHandler().register(encryptionPlugin, GetSessionParamsMessageEvent.class);
         player.getConnection().getMessageHandler().register(encryptionPlugin, GetDateMessageEvent.class);
         player.getConnection().getMessageHandler().register(encryptionPlugin, GetAvailableSetsMessageEvent.class);
+        player.getConnection().getMessageHandler().register(encryptionPlugin, LoginMessageEvent.class);
 
         var rc4Holder = encryptionPlugin
                 .getEncryptionHolders()

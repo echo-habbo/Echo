@@ -1,4 +1,4 @@
-package net.h4bbo.echo.common.network.codecs;
+package net.h4bbo.echo.storage.codecs;
 import net.h4bbo.echo.common.util.specialised.WireEncoding;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
@@ -47,9 +47,6 @@ public class PacketCodec implements IPacketCodec {
 
         try {
             switch (codec) {
-                case INT:
-                    appendInteger(value);
-                    break;
                 case BASE64_INT:
                     appendBase64Integer(value);
                     break;

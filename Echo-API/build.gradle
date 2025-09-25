@@ -11,6 +11,6 @@ dependencies {
     // https://mvnrepository.com/artifact/io.netty/netty-all
     api ("io.netty:netty-all:4.2.6.Final")
     api ("com.github.lovepigeons:Inject4j:v1.0.0")
-    api ("com.github.lovepigeons:SimpleLogger4j:v1.0.3")
+    api project (":Echo-Storage")
 }
 

@@ -1,4 +1,4 @@
-package net.h4bbo.echo.common.network.codecs;
+package net.h4bbo.echo.storage.codecs;
 
 import io.netty.buffer.ByteBuf;
 import net.h4bbo.echo.common.util.specialised.WireEncoding;
@@ -44,7 +44,7 @@ public class ClientCodec implements IClientCodec, AutoCloseable {
     @Override
     public Object get(DataCodec codec) {
         switch (codec) {
-            case DataCodec.INT:
+            case DataCodec.VL64_INT:
                 return getInt();
             case DataCodec.BASE64_INT:
                 return getBase64Int();

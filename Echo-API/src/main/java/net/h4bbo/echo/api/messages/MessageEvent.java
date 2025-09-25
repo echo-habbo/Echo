@@ -5,6 +5,7 @@ import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
+import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.util.Objects;
 
@@ -34,5 +35,9 @@ public abstract class MessageEvent {
 
     public JavaPlugin getPlugin() {
         return plugin;
+    }
+
+    public SimpleLog getLogger() {
+        return SimpleLog.of(this.getClass());
     }
 }
