@@ -7,7 +7,7 @@ import net.h4bbo.echo.server.plugin.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
 import net.h4bbo.echo.server.network.session.ConnectionManager;
 import net.h4bbo.echo.server.plugin.PluginManager;
-import net.h4bbo.echo.storage.StorageContext;
+import net.h4bbo.echo.storage.StorageContextFactory;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.io.File;
@@ -48,9 +48,7 @@ public class Echo {
 
         log.success("server.conf found");
 
-        log.debug("Loading test plugin");
         pluginManager.loadPluginInstance(new EncryptionPlugin());
-
 
         try {
             if (!tryDatabaseConnection()) {
@@ -100,7 +98,7 @@ public class Echo {
     private static boolean tryDatabaseConnection() {
         log.info("Attempting to load database...");
 
-        try (var db = new StorageContext()) {
+        try (var db = StorageContextFactory.getStorage()) {
             log.success("Database is loaded successfully!");
         } catch (Exception ex) {
             log.error("An exception occurred attempting to connect to the database: " + ex.getMessage(), ex);

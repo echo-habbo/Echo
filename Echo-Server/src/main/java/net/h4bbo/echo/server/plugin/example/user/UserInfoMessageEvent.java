@@ -5,6 +5,7 @@ import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.storage.StorageContext;
+import net.h4bbo.echo.storage.StorageContextFactory;
 import net.h4bbo.echo.storage.codecs.PacketCodec;
 import net.h4bbo.echo.storage.models.user.User;
 
@@ -19,7 +20,7 @@ public class UserInfoMessageEvent extends MessageEvent {
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
 
-        try (var db = new StorageContext()) {
+        try (var db = StorageContextFactory.getStorage()) {
             System.out.println("SQL: " + db.from(User.class)
                     .filter(f -> f.equals(User::getName, "Alex")).toSqlWithParams());
 

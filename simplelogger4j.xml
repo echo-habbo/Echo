@@ -1,6 +1,6 @@
 <config>
     <minLevel>DEBUG</minLevel>
-    <pattern>[%{timestamp:datetime('yyyy-MM-dd HH:mm:ss')}] [%{level:LEVEL}] (%{package:CYAN}) %{message}</pattern>
+    <pattern>[%{timestamp:datetime('yyyy-MM-dd HH:mm:ss')}] [%{level:LEVEL}] (%{name:CYAN}) %{message}</pattern>
     <consoleColour>true</consoleColour>
     <appenders>
         <console enabled="true"/>

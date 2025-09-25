@@ -30,9 +30,9 @@ public class EncryptionPlugin extends JavaPlugin {
 
     @Override
     public void load() {
-        this.logger = SimpleLog.of(EncryptionPlugin.class);
+        this.logger = SimpleLog.of("EncryptionPlugin");
         this.logger.info("ExamplePlugin loaded!");
-        
+
         this.getEventManager().register(this, this);
     }
 
