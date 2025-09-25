@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelId;
 import net.h4bbo.echo.api.event.EventHandler;
 import net.h4bbo.echo.api.event.types.client.*;
+import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
 import net.h4bbo.echo.api.plugin.DependsOnAttribute;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
 import net.h4bbo.echo.common.network.codecs.PacketCodec;
@@ -41,21 +42,34 @@ public class EncryptionPlugin extends JavaPlugin {
 
     @EventHandler
     public void onClientConnected(ClientConnectedEvent event) {
-        event.getSession().getMessageHandler().register(this, InitCryptoMessageEvent.class);
-        this.logger.debug("[EncryptionPlugin] Client {} connected", event.getSession().getChannel().remoteAddress().toString());
+        var rc4Holder = new RC4Holder(
+                event.getConnection()
+        );
+
+        this.encryptionHolders.putIfAbsent(
+                event.getConnection().getChannel().id(),
+                rc4Holder
+        );
+
+        event.getConnection().getMessageHandler().register(this, InitCryptoMessageEvent.class);
+        this.logger.debug("[EncryptionPlugin] Client {} connected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
     public void onClientDisconnected(ClientDisconnectedEvent event) {
+        this.encryptionHolders.remove(
+                event.getConnection().getChannel().id()
+        );
 
+        this.logger.debug("[EncryptionPlugin] Client {} disconnected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
-    public void onClientReceivedDataEvent(ClientReceivedDataEvent event) {
-        if (!this.encryptionHolders.containsKey(event.getSession().getChannel().id()))
+    public void onConnectionReceivedDataEvent(ConnectionReceivedDataEvent event) {
+        if (!this.encryptionHolders.containsKey(event.getConnection().getChannel().id()))
             return;
 
-        var rc4Holder = this.encryptionHolders.get(event.getSession().getChannel().id());
+        var rc4Holder = this.encryptionHolders.get(event.getConnection().getChannel().id());
 
         if (!rc4Holder.isEncryptionReady()) {
             return;
@@ -64,13 +78,13 @@ public class EncryptionPlugin extends JavaPlugin {
         byte[] message = new byte[event.getBuffer().readableBytes()];
         event.getBuffer().readBytes(message);
 
-        var deciphered = rc4Holder.rc4.decipher(new String(message, PacketCodec.getProtocolEncoding()));
-        var buffer = Unpooled.buffer(deciphered.length());
+        var deciphered = rc4Holder.rc4.decipher(message);
+        var buffer = Unpooled.buffer(deciphered.length);
+        buffer.writeBytes(deciphered);
 
-        buffer.writeBytes(deciphered.getBytes(PacketCodec.getProtocolEncoding()));
         event.setBuffer(buffer);
 
-        this.logger.debug("[EncryptionPlugin] Client decipher: {}", deciphered);
+        this.logger.success("[EncryptionPlugin] Client decipher: {}", new String(message, ProtocolCodec.getEncoding()));
     }
 
     public Map<ChannelId, RC4Holder> getEncryptionHolders() {

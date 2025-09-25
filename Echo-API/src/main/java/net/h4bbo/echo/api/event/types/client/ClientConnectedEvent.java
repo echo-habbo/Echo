@@ -10,7 +10,7 @@ public class ClientConnectedEvent extends ICancellableEvent {
         this.session = session;
     }
 
-    public IConnectionSession getSession() {
+    public IConnectionSession getConnection() {
         return session;
     }
 }

@@ -6,7 +6,8 @@ import io.netty.util.AttributeKey;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.event.types.client.ClientConnectedEvent;
 import net.h4bbo.echo.api.event.types.client.ClientDisconnectedEvent;
-import net.h4bbo.echo.api.event.types.client.ClientReceivedMessageEvent;
+import net.h4bbo.echo.api.event.types.client.ConnectionMessageEvent;
+import net.h4bbo.echo.api.event.types.client.ConnectionReceivedDataEvent;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
@@ -73,7 +74,7 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
     protected void channelRead0(ChannelHandlerContext ctx, ClientCodec msg) throws Exception {
         var connection = ctx.channel().attr(CONNECTION_KEY).get();
 
-        var isCancelled = this.eventManager.publish(new ClientReceivedMessageEvent(connection, msg));
+        var isCancelled = this.eventManager.publish(new ConnectionMessageEvent(connection, msg));
 
         if (isCancelled) {
             return;

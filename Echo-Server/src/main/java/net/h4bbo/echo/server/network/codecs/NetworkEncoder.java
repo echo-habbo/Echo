@@ -4,8 +4,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import net.h4bbo.echo.api.event.IEventManager;
-import net.h4bbo.echo.api.event.types.client.ClientReceivedDataEvent;
-import net.h4bbo.echo.api.event.types.client.ServerSendDataEvent;
+import net.h4bbo.echo.api.event.types.client.ConnectionOutgoingDataEvent;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.server.network.GameNetworkHandler;
@@ -37,7 +36,7 @@ public class NetworkEncoder extends MessageToMessageEncoder<IPacketCodec> {
         buffer.writeBytes(composer.getBuffer());
         buffer.writeByte(1);
 
-        var event = new ServerSendDataEvent(ctx.channel().attr(GameNetworkHandler.CONNECTION_KEY).get(), buffer);
+        var event = new ConnectionOutgoingDataEvent(ctx.channel().attr(GameNetworkHandler.CONNECTION_KEY).get(), buffer);
         var isCancelled = this.eventManager.publish(event);
 
         if (isCancelled) {

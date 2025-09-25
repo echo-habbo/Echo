@@ -1,5 +1,7 @@
 package net.h4bbo.echo.server.plugin.example;
 
+import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
+
 import java.util.Objects;
 
 /**
@@ -34,9 +36,11 @@ public class RC4 {
     private final int[] table = new int[SIZE];
 
     /**
-     * Construct and initialize the provider from a public key string.
+     * Creates a new RC4 cipher instance from a public key.
+     * The constructor decodes the provided key, initializes the S-box,
+     * and runs a premixing phase to further randomize the state.
      *
-     * @param publicKey the encoded public key
+     * @param publicKey the encoded public key string
      */
     public RC4(String publicKey) {
         this.i = 0;
@@ -48,11 +52,12 @@ public class RC4 {
     }
 
     /**
-     * Decodes the provided composite key string into a numeric checksum string.
-     * Mirrors the logic from the original C# decodeKey method.
+     * Converts an encoded public key into a numeric checksum string.
+     * The algorithm mirrors the C# implementation, combining characters
+     * from both halves of the input and applying XOR/shift transformations.
      *
      * @param key composite key string
-     * @return checksum as decimal string
+     * @return numeric checksum as a decimal string
      */
     protected String decodeKey(String key) {
         Objects.requireNonNull(key, "Key must not be null");
@@ -75,43 +80,38 @@ public class RC4 {
     }
 
     /**
-     * Initialize key and permutation table based on the decoded key string.
+     * Initializes the key stream and S-box using the decoded key string.
+     * Performs RC4 key scheduling (KSA) to prepare the cipher state.
      *
-     * @param keyString decoded key string (expected to be parseable as an integer)
+     * @param keyString decoded key string (decimal format)
      */
     private void initialize(String keyString) {
         Objects.requireNonNull(keyString, "Key string must not be null");
         int keyValue = Integer.parseInt(keyString);
         int keyLength = ((keyValue & 0xF8) / 8);
-        if (keyLength < 20) {
-            keyLength += 20;
-        }
+        if (keyLength < 20) keyLength += 20;
 
-        // keyWindow is assumed to be defined in RC4Core (like in your C# base class)
         int keyOffset = keyValue % keyWindow.length;
         int tGiven = keyValue;
-        int tOwn = 0;
+        int tOwn;
 
         int[] w = new int[keyLength];
 
+        // Expand key material using keyWindow and bitwise operations
         for (int a = 0; a < keyLength; a++) {
             tOwn = keyWindow[Math.abs((keyOffset + a) % keyWindow.length)];
             w[a] = Math.abs(tGiven ^ tOwn);
-            if (a == 31) {
-                tGiven = keyValue;
-            } else {
-                tGiven = (tGiven / 2);
-            }
+            tGiven = (a == 31) ? keyValue : (tGiven / 2);
         }
 
-        // Fill key stream and initialize permutation table
+        // Fill key array and initialize S-box
         for (int b = 0; b < SIZE; b++) {
             key[b] = w[b % w.length];
             table[b] = b;
         }
 
-        // Key-scheduling (KSA)
-        int t = 0;
+        // Key-scheduling algorithm (RC4 KSA)
+        int t;
         int u = 0;
         for (int a = 0; a < SIZE; a++) {
             u = (u + table[a] + key[a]) % SIZE;
@@ -122,9 +122,10 @@ public class RC4 {
     }
 
     /**
-     * Premix the table by enciphering the premixString multiple times.
+     * Performs a premixing phase by repeatedly encrypting a fixed string.
+     * This scrambles the S-box before the cipher is used.
      *
-     * @param s the premix string (assumed provided by RC4Core)
+     * @param s premix string
      */
     private void premixTable(String s) {
         for (int a = 0; a < 17; a++) {
@@ -133,20 +134,30 @@ public class RC4 {
     }
 
     /**
-     * Encipher a string and return its hex-encoded result (two hex characters per output byte).
+     * Encrypts a byte array and returns the result as a hex-encoded byte array.
      *
-     * @param input plaintext input
-     * @return hex string of the cipher bytes
+     * @param input plaintext bytes
+     * @return encrypted bytes (hex characters)
+     */
+    public byte[] encipher(byte[] input) {
+        var val = encipher(new String(input, ProtocolCodec.getEncoding()));
+        return val.getBytes(ProtocolCodec.getEncoding());
+    }
+
+    /**
+     * Encrypts a string and returns a hex-encoded ciphertext.
+     * Each plaintext character is XORed with the RC4 keystream byte.
+     *
+     * @param input plaintext string
+     * @return hex-encoded ciphertext
      */
     public String encipher(String input) {
-        if (input == null || input.isEmpty()) {
-            return "";
-        }
+        if (input == null || input.isEmpty()) return "";
 
         StringBuilder ret = new StringBuilder(input.length() * 2);
 
         for (int a = 0; a < input.length(); a++) {
-            // PRGA step
+            // RC4 PRGA step
             i = (i + 1) % SIZE;
             j = (j + table[i]) % SIZE;
             int t = table[i];
@@ -154,44 +165,48 @@ public class RC4 {
             table[j] = t;
 
             int k = table[(table[i] + table[j]) % SIZE];
-
-            // XOR with keystream byte. Use charAt to get the character code.
             int c = input.charAt(a) ^ k;
             int byteVal = c & 0xFF;
 
-            // If resulting byte is zero, produce "00", otherwise two hex chars.
+            // Encode as two uppercase hex digits
             if (byteVal == 0) {
                 ret.append("00");
             } else {
-                // Two uppercase hex digits, padded with leading zero if necessary
                 String hex = Integer.toHexString(byteVal).toUpperCase();
-                if (hex.length() == 1) {
-                    ret.append('0');
-                }
+                if (hex.length() == 1) ret.append('0');
                 ret.append(hex);
             }
         }
-
         return ret.toString();
     }
 
     /**
-     * Decipher a hex-encoded RC4 ciphertext (two hex chars per byte) and return the plaintext string.
-     * If input is malformed or an exception occurs, returns an empty string (mirrors original behavior).
+     * Decrypts a hex-encoded RC4 ciphertext back to a byte array.
+     * Returns an empty array if the input is invalid.
      *
      * @param input hex-encoded ciphertext
-     * @return plaintext, or empty string on error
+     * @return plaintext bytes
+     */
+    public byte[] decipher(byte[] input) {
+        var val = decipher(new String(input, ProtocolCodec.getEncoding()));
+        return val.getBytes(ProtocolCodec.getEncoding());
+    }
+
+    /**
+     * Decrypts a hex-encoded RC4 ciphertext back to its plaintext string.
+     * Returns an empty string if the input is malformed.
+     *
+     * @param input hex-encoded ciphertext
+     * @return plaintext string
      */
     public String decipher(String input) {
-        if (input == null || input.length() % 2 != 0) {
-            return "";
-        }
+        if (input == null || input.length() % 2 != 0) return "";
 
         try {
             StringBuilder ret = new StringBuilder(input.length() / 2);
 
             for (int a = 0; a < input.length(); a += 2) {
-                // PRGA step
+                // RC4 PRGA step
                 i = (i + 1) % SIZE;
                 j = (j + table[i]) % SIZE;
                 int t = table[i];
@@ -199,16 +214,11 @@ public class RC4 {
                 table[j] = t;
 
                 int k = table[(table[i] + table[j]) % SIZE];
-
-                String hexPair = input.substring(a, a + 2);
-                int parsed = Integer.parseInt(hexPair, 16);
-
+                int parsed = Integer.parseInt(input.substring(a, a + 2), 16);
                 ret.append((char) (parsed ^ k));
             }
-
             return ret.toString();
         } catch (Exception ex) {
-            // original C# code swallowed exceptions and returned empty string
             return "";
         }
     }

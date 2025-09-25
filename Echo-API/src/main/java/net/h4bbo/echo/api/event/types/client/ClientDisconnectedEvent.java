@@ -10,7 +10,7 @@ public class ClientDisconnectedEvent extends IEvent {
         this.session = session;
     }
 
-    public IConnectionSession getSession() {
+    public IConnectionSession getConnection() {
         return session;
     }
 }

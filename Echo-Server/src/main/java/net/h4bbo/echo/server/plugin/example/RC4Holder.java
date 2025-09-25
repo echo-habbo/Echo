@@ -19,14 +19,6 @@ public class RC4Holder {
         this.encryptionReady = false;
     }
 
-    public RC4 getRc4() {
-        return rc4;
-    }
-
-    public IConnectionSession getConnectionSession() {
-        return connectionSession;
-    }
-
     public boolean isEncryptionReady() {
         return encryptionReady;
     }

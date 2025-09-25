@@ -4,16 +4,16 @@ import io.netty.buffer.ByteBuf;
 import net.h4bbo.echo.api.event.types.ICancellableEvent;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 
-public class ClientReceivedDataEvent extends ICancellableEvent {
+public class ConnectionReceivedDataEvent extends ICancellableEvent {
     private IConnectionSession session;
     private ByteBuf buffer;
 
-    public ClientReceivedDataEvent(IConnectionSession session, ByteBuf buffer) {
+    public ConnectionReceivedDataEvent(IConnectionSession session, ByteBuf buffer) {
         this.session = session;
         this.buffer = buffer;
     }
 
-    public IConnectionSession getSession() {
+    public IConnectionSession getConnection() {
         return session;
     }
 

@@ -2,16 +2,15 @@ package net.h4bbo.echo.api.event.types.client;
 
 import net.h4bbo.echo.api.event.types.ICancellableEvent;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
-import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 
-public class ClientReceivedMessageEvent extends ICancellableEvent {
-    private IConnectionSession session;
-    private IClientCodec codec;
+public class ConnectionMessageEvent extends ICancellableEvent {
+    private final IConnectionSession session;
+    private final IClientCodec message;
 
-    public ClientReceivedMessageEvent(IConnectionSession session, IClientCodec codec) {
+    public ConnectionMessageEvent(IConnectionSession session, IClientCodec message) {
         this.session = session;
-        this.codec = codec;
+        this.message = message;
     }
 
     public IConnectionSession getSession() {
@@ -19,6 +18,6 @@ public class ClientReceivedMessageEvent extends ICancellableEvent {
     }
 
     public IClientCodec getMessage() {
-        return codec;
+        return message;
     }
 }

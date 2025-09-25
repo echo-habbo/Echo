@@ -16,22 +16,11 @@ public class InitCryptoMessageEvent extends MessageEvent {
 
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
-        var rc4Holder = new RC4Holder(
-                player.getConnection()
-        );
-
-        var encryptionPlugin = (EncryptionPlugin) this.getPlugin();
-
-        if (encryptionPlugin != null) {
-            encryptionPlugin.getEncryptionHolders()
-                    .putIfAbsent(player.getConnection().getChannel().id(), rc4Holder);
-        }
-
         // Needed after handshake
-        player.getConnection().getMessageHandler().register(encryptionPlugin, GenerateKeyMessageEvent.class);
+        player.getConnection().getMessageHandler().register(this.getPlugin(), GenerateKeyMessageEvent.class);
 
         // Not needed after handshake
-        player.getConnection().getMessageHandler().deregister(encryptionPlugin, InitCryptoMessageEvent.class);
+        player.getConnection().getMessageHandler().deregister(this.getPlugin(), InitCryptoMessageEvent.class);
 
         // Send crypto parameters
         PacketCodec.create(277)
