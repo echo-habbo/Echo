@@ -367,7 +367,8 @@ public class PluginManager implements IPluginManager {
         dependencyGraph.put(name, new HashSet<>(Arrays.asList(dependencies)));
         pendingToEnable.add(name);
 
-        log.info("Found plugin: " + name);
+        // log.info("Found plugin: " + name);
+
         return true;
     }
 
