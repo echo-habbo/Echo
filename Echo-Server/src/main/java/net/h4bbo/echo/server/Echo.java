@@ -1,10 +1,8 @@
 package net.h4bbo.echo.server;
 
-import com.sun.source.util.Plugin;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.server.plugin.PluginLoader;
-import net.h4bbo.echo.server.plugin.example.EncryptionPlugin;
 import net.h4bbo.echo.server.plugin.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
 import net.h4bbo.echo.server.network.session.ConnectionManager;

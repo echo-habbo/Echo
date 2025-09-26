@@ -1,9 +1,7 @@
-package net.h4bbo.echo.server.plugin.example;
+package net.h4bbo.echo.plugin.handshake.encryption;
 
 import java.security.SecureRandom;
-import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class KeyGenerator {
     private static final Random random;

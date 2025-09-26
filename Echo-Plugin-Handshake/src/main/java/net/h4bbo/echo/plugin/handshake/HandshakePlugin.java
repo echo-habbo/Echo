@@ -1,42 +1,31 @@
-package net.h4bbo.echo.server.plugin.example;
+package net.h4bbo.echo.plugin.handshake;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelId;
 import net.h4bbo.echo.api.event.EventHandler;
 import net.h4bbo.echo.api.event.types.client.*;
 import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
-import net.h4bbo.echo.api.plugin.DependsOn;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
-import net.h4bbo.echo.server.plugin.example.handshake.InitCryptoMessageEvent;
-import org.oldskooler.simplelogger4j.SimpleLog;
+import net.h4bbo.echo.plugin.handshake.encryption.RC4Holder;
+import net.h4bbo.echo.plugin.handshake.messages.handshake.InitCryptoMessageEvent;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-// Example plugin implementation
-@DependsOn({"CorePlugin", "DatabasePlugin"})
-public class EncryptionPlugin extends JavaPlugin {
-    private SimpleLog logger;
+public class HandshakePlugin extends JavaPlugin {
     private final Map<ChannelId, RC4Holder> encryptionHolders
             = new ConcurrentHashMap<>();
 
     @Override
-    public String getName() {
-        return "EncryptionPlugin";
-    }
-
-    @Override
     public void load() {
-        this.logger = SimpleLog.of("EncryptionPlugin");
-        this.logger.info("ExamplePlugin loaded!");
-
+        this.getLogger().info("{} loaded!", this.getName());
         this.getEventManager().register(this, this);
     }
 
     @Override
     public void unload() {
         this.encryptionHolders.clear();
-        this.logger.info("ExamplePlugin unloaded!");
+        this.getLogger().info("{} unloaded!", this.getName());
     }
 
     @EventHandler
@@ -51,7 +40,7 @@ public class EncryptionPlugin extends JavaPlugin {
         );
 
         event.getConnection().getMessageHandler().register(this, InitCryptoMessageEvent.class);
-        this.logger.info("[EncryptionPlugin] Client {} connected", event.getConnection().getChannel().remoteAddress().toString());
+        this.getLogger().info("Client {} connected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
@@ -60,7 +49,7 @@ public class EncryptionPlugin extends JavaPlugin {
                 event.getConnection().getChannel().id()
         );
 
-        this.logger.info("[EncryptionPlugin] Client {} disconnected", event.getConnection().getChannel().remoteAddress().toString());
+        this.getLogger().info("Client {} disconnected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
@@ -83,7 +72,7 @@ public class EncryptionPlugin extends JavaPlugin {
         buffer.writeBytes(deciphered);
         event.setBuffer(buffer);
 
-        this.logger.debug("[EncryptionPlugin] Client decipher: {}", new String(message, ProtocolCodec.getEncoding()));
+        this.getLogger().debug("Client decipher: {}", new String(message, ProtocolCodec.getEncoding()));
     }
 
     public Map<ChannelId, RC4Holder> getEncryptionHolders() {

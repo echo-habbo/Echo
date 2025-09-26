@@ -1,12 +1,12 @@
-package net.h4bbo.echo.server.plugin.example.handshake;
+package net.h4bbo.echo.plugin.handshake.messages.handshake;
 
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
-import net.h4bbo.echo.server.plugin.example.user.LoginMessageEvent;
+import net.h4bbo.echo.plugin.handshake.HandshakePlugin;
+import net.h4bbo.echo.plugin.handshake.messages.user.LoginMessageEvent;
 import net.h4bbo.echo.storage.codecs.PacketCodec;
-import net.h4bbo.echo.server.plugin.example.EncryptionPlugin;
 
 public class GenerateKeyMessageEvent extends MessageEvent {
     @Override
@@ -16,7 +16,7 @@ public class GenerateKeyMessageEvent extends MessageEvent {
 
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
-        var encryptionPlugin = (EncryptionPlugin) this.getPlugin();
+        var encryptionPlugin = (HandshakePlugin) this.getPlugin();
 
         if (encryptionPlugin == null) {
             player.getConnection().close();

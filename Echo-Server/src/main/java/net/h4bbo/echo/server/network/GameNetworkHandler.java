@@ -12,8 +12,8 @@ import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
 import net.h4bbo.echo.storage.codecs.ClientCodec;
 import net.h4bbo.echo.storage.codecs.PacketCodec;
-import net.h4bbo.echo.server.plugin.example.handshake.GenerateKeyMessageEvent;
-import net.h4bbo.echo.server.plugin.example.handshake.InitCryptoMessageEvent;
+import net.h4bbo.echo.plugin.handshake.messages.handshake.GenerateKeyMessageEvent;
+import net.h4bbo.echo.plugin.handshake.messages.handshake.InitCryptoMessageEvent;
 import net.h4bbo.echo.server.network.session.ConnectionSession;
 import org.oldskooler.simplelogger4j.SimpleLog;
 

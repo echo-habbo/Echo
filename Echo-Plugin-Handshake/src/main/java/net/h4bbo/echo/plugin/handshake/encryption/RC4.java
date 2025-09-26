@@ -1,4 +1,4 @@
-package net.h4bbo.echo.server.plugin.example;
+package net.h4bbo.echo.plugin.handshake.encryption;
 
 import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
 

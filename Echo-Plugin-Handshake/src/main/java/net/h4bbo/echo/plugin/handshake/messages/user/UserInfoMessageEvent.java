@@ -1,4 +1,4 @@
-package net.h4bbo.echo.server.plugin.example.user;
+package net.h4bbo.echo.plugin.handshake.messages.user;
 
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;

@@ -1,10 +1,6 @@
-package net.h4bbo.echo.server.plugin.example;
+package net.h4bbo.echo.plugin.handshake.encryption;
 
 import net.h4bbo.echo.api.network.session.IConnectionSession;
-import net.h4bbo.echo.server.network.session.ConnectionSession;
-
-import java.security.SecureRandom;
-import java.util.Random;
 
 public class RC4Holder {
     public final RC4 rc4;

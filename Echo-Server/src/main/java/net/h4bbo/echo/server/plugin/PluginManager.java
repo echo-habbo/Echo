@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -18,8 +20,8 @@ public class PluginManager implements IPluginManager {
     private final String pluginDirectory;
     private final Map<String, PluginMetadata> loadedPlugins = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> dependencyGraph = new ConcurrentHashMap<>();
-    private final Set<String> pendingToEnable = Collections.synchronizedSet(new LinkedHashSet<>());
-    private final Set<String> enabledPlugins = Collections.synchronizedSet(new HashSet<>());
+    private final List<String> pendingToEnable = new CopyOnWriteArrayList<>();
+    private final List<String> enabledPlugins = new CopyOnWriteArrayList<>();
     private final IEventManager eventManager;
 
     public PluginManager(String pluginDirectory, IEventManager eventManager) {
@@ -440,9 +442,7 @@ public class PluginManager implements IPluginManager {
         boolean progress = true;
         while (progress && !pendingToEnable.isEmpty()) {
             progress = false;
-            Iterator<String> it = new ArrayList<>(pendingToEnable).iterator();
-            while (it.hasNext()) {
-                String pluginName = it.next();
+            for (String pluginName : new ArrayList<>(pendingToEnable)) {
                 Set<String> deps = graph.getOrDefault(pluginName, Collections.emptySet());
                 boolean depsEnabledNow = true;
                 for (String d : deps) {
@@ -466,7 +466,7 @@ public class PluginManager implements IPluginManager {
                     pendingToEnable.remove(pluginName);
                     progress = true;
 
-                    } catch (Exception e) {
+                } catch (Exception e) {
                     log.error("Error enabling plugin on later pass: " + pluginName, e);
                     // leave pending
                 }
