@@ -18,6 +18,8 @@ public class PluginManager implements IPluginManager {
     private final String pluginDirectory;
     private final Map<String, PluginMetadata> loadedPlugins = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> dependencyGraph = new ConcurrentHashMap<>();
+    private final Set<String> pendingToEnable = Collections.synchronizedSet(new LinkedHashSet<>());
+    private final Set<String> enabledPlugins = Collections.synchronizedSet(new HashSet<>());
     private final IEventManager eventManager;
 
     public PluginManager(String pluginDirectory, IEventManager eventManager) {
@@ -26,7 +28,8 @@ public class PluginManager implements IPluginManager {
     }
 
     /**
-     * Load all plugins from the plugin directory
+     * Load all plugins from the plugin directory.
+     * This will *scan + create* all plugin metadata/instances first, then enable them at the end.
      */
     public void loadAllPlugins() {
         File dir = new File(pluginDirectory);
@@ -47,8 +50,8 @@ public class PluginManager implements IPluginManager {
             return;
         }
 
-        // First pass: collect all plugin metadata
-        Map<String, PluginCandidate> candidates = new HashMap<>();
+        // First pass: collect all plugin metadata (scan + instantiate plugin objects and register them)
+        Map<String, PluginCandidate> candidates = new LinkedHashMap<>();
         for (File jarFile : jarFiles) {
             try {
                 PluginCandidate candidate = scanPlugin(jarFile);
@@ -60,22 +63,25 @@ public class PluginManager implements IPluginManager {
             }
         }
 
-        // Second pass: resolve dependencies and load in order
-        List<String> loadOrder = resolveDependencyOrder(candidates);
-        for (String pluginName : loadOrder) {
-            PluginCandidate candidate = candidates.get(pluginName);
-            if (candidate != null) {
-                try {
-                    loadPlugin(candidate);
-                } catch (Exception e) {
-                    log.error("Error loading plugin: " + pluginName, e);
-                }
+        // Create metadata/instances for all candidates without enabling them.
+        for (PluginCandidate candidate : candidates.values()) {
+            try {
+                registerPluginCandidate(candidate);
+            } catch (Exception e) {
+                log.error("Error registering plugin candidate: " + candidate.name, e);
             }
         }
+
+        // Now that all plugins are registered, enable them in dependency order.
+        enablePendingPlugins();
     }
 
     /**
-     * Load a specific plugin by JAR file path
+     * Load a specific plugin by JAR file path.
+     *
+     * NOTE: This registers the plugin (creates metadata and instance) and adds it to pendingToEnable,
+     * but does NOT enable it immediately. Call enablePendingPlugins() after loading multiple plugins,
+     * or call it manually to attempt enabling now.
      */
     public boolean loadPlugin(String jarPath) {
         try {
@@ -85,15 +91,8 @@ public class PluginManager implements IPluginManager {
                 return false;
             }
 
-            // Check dependencies
-            for (String dep : candidate.dependencies) {
-                if (!loadedPlugins.containsKey(dep)) {
-                    log.error("Dependency not loaded: " + dep + " for plugin: " + candidate.name);
-                    return false;
-                }
-            }
-
-            return loadPlugin(candidate);
+            // Register candidate (creates instance/metadata and marks pending) but do not enable here.
+            return registerPluginCandidate(candidate);
         } catch (Exception e) {
             log.error("Error loading plugin: " + jarPath, e);
             return false;
@@ -119,9 +118,15 @@ public class PluginManager implements IPluginManager {
         }
 
         try {
-            metadata.getInstance().unload();
+            // If not enabled, just remove
+            if (enabledPlugins.contains(pluginName)) {
+                metadata.getInstance().unload();
+                enabledPlugins.remove(pluginName);
+            }
+
             loadedPlugins.remove(pluginName);
             dependencyGraph.remove(pluginName);
+            pendingToEnable.remove(pluginName);
 
             // Close class loader if possible
             if (metadata.getClassLoader() instanceof PluginClassLoader) {
@@ -157,7 +162,7 @@ public class PluginManager implements IPluginManager {
             return false;
         }
 
-        // Then load again
+        // Then register again (but do not enable automatically)
         return loadPlugin(jarPath);
     }
 
@@ -192,10 +197,17 @@ public class PluginManager implements IPluginManager {
     }
 
     /**
-     * Check if plugin is loaded
+     * Check if plugin is loaded (registered)
      */
     public boolean isPluginLoaded(String name) {
         return loadedPlugins.containsKey(name);
+    }
+
+    /**
+     * Check if plugin is enabled
+     */
+    public boolean isPluginEnabled(String name) {
+        return enabledPlugins.contains(name);
     }
 
     /**
@@ -209,8 +221,8 @@ public class PluginManager implements IPluginManager {
      * Unload all plugins
      */
     public void unloadAllPlugins() {
-        // Unload in reverse dependency order
-        List<String> unloadOrder = new ArrayList<>(loadedPlugins.keySet());
+        // Unload in reverse dependency order of currently enabled plugins
+        List<String> unloadOrder = new ArrayList<>(enabledPlugins);
         Collections.reverse(unloadOrder);
 
         for (String pluginName : unloadOrder) {
@@ -218,6 +230,13 @@ public class PluginManager implements IPluginManager {
                 unloadPlugin(pluginName);
             } catch (Exception e) {
                 log.error("Error unloading plugin: " + pluginName, e);
+            }
+        }
+
+        // Remove any remaining registered but not enabled plugins
+        for (String pluginName : new ArrayList<>(loadedPlugins.keySet())) {
+            if (!enabledPlugins.contains(pluginName)) {
+                unloadPlugin(pluginName);
             }
         }
     }
@@ -263,7 +282,7 @@ public class PluginManager implements IPluginManager {
                             candidate.version = tempInstance.getVersion();
 
                             // Check for dependencies
-                            DependsOnAttribute dependsOn = pluginClass.getAnnotation(DependsOnAttribute.class);
+                            DependsOn dependsOn = pluginClass.getAnnotation(DependsOn.class);
                             candidate.dependencies = dependsOn != null ? dependsOn.value() : new String[0];
 
                             return candidate;
@@ -277,20 +296,23 @@ public class PluginManager implements IPluginManager {
         return null;
     }
 
-    private boolean loadPlugin(PluginCandidate candidate) throws Exception {
-        // Check if already loaded
+    /**
+     * Register a candidate (create classloader, instantiate plugin instance, add metadata and dependency graph),
+     * but do NOT enable it yet. Add to pendingToEnable.
+     */
+    private boolean registerPluginCandidate(PluginCandidate candidate) throws Exception {
+        if (candidate == null) return false;
         if (loadedPlugins.containsKey(candidate.name)) {
-            log.error("plugin already loaded: " + candidate.name);
+            log.error("plugin already registered: " + candidate.name);
             return false;
         }
 
-        // Create class loader
+        // Create class loader and instantiate plugin
         File jarFile = new File(candidate.jarPath);
         URL jarUrl = jarFile.toURI().toURL();
         PluginClassLoader classLoader = new PluginClassLoader(
                 new URL[]{jarUrl}, getClass().getClassLoader(), candidate.name);
 
-        // Load and instantiate plugin
         Class<? extends JavaPlugin> pluginClass = classLoader.loadClass(candidate.pluginClass.getName())
                 .asSubclass(JavaPlugin.class);
         JavaPlugin plugin = pluginClass.getDeclaredConstructor().newInstance();
@@ -300,33 +322,36 @@ public class PluginManager implements IPluginManager {
                 candidate.name, candidate.version, candidate.dependencies,
                 plugin, classLoader, candidate.jarPath);
 
-        // Store metadata
+        // Register metadata and dependency graph, but don't call enablePlugin() yet.
         loadedPlugins.put(candidate.name, metadata);
         dependencyGraph.put(candidate.name, new HashSet<>(Arrays.asList(candidate.dependencies)));
+        pendingToEnable.add(candidate.name);
 
-        // Load the plugin
-        enablePlugin(plugin);
+        log.info("Registered plugin: " + candidate.name + " (pending enable)");
         return true;
     }
 
     /**
      * Add a plugin instance directly.
      * Useful for testing or dynamically created plugins.
+     *
+     * This will register the plugin and add it to pendingToEnable, but will NOT enable it.
+     * Call enablePendingPlugins() after registering instances to enable them in correct order.
      */
     public boolean loadPluginInstance(JavaPlugin pluginInstance) {
         if (pluginInstance == null) return false;
 
         String name = pluginInstance.getName();
         if (loadedPlugins.containsKey(name)) {
-            log.error("plugin already loaded: " + name);
+            log.error("plugin already registered: " + name);
             return false;
         }
 
-        // Handle dependencies if possible (optional)
-        DependsOnAttribute dependsOn = pluginInstance.getClass().getAnnotation(DependsOnAttribute.class);
+        // Handle dependencies if present
+        DependsOn dependsOn = pluginInstance.getClass().getAnnotation(DependsOn.class);
         String[] dependencies = dependsOn != null ? dependsOn.value() : new String[0];
 
-        // Create PluginMetadata (no JAR, use null or empty for class loader/jarPath)
+        // Create PluginMetadata (no JAR)
         PluginMetadata metadata = new PluginMetadata(
                 name,
                 pluginInstance.getVersion(),
@@ -338,64 +363,158 @@ public class PluginManager implements IPluginManager {
 
         loadedPlugins.put(name, metadata);
         dependencyGraph.put(name, new HashSet<>(Arrays.asList(dependencies)));
+        pendingToEnable.add(name);
 
-        try {
-            enablePlugin(pluginInstance);
-            return true;
-        } catch (Exception e) {
-            log.error("Error loading plugin instance: " + name, e);
-            loadedPlugins.remove(name);
-            dependencyGraph.remove(name);
-            return false;
-        }
+        log.info("Found plugin: " + name);
+        return true;
     }
 
-    private void enablePlugin(JavaPlugin pluginInstance) {
-        pluginInstance.inject(this.eventManager, this);
-        pluginInstance.load();
-        log.info("Loaded plugin: {} {}", pluginInstance.getName(), pluginInstance.getVersion());
-    }
-
-    private List<String> resolveDependencyOrder(Map<String, PluginCandidate> candidates) {
-        List<String> result = new ArrayList<>();
-        Set<String> visited = new HashSet<>();
-        Set<String> visiting = new HashSet<>();
-
-        for (String pluginName : candidates.keySet()) {
-            if (!visited.contains(pluginName)) {
-                resolveDependencyOrder(pluginName, candidates, result, visited, visiting);
+    /**
+     * Enable all pending registered plugins in a dependency-respecting order.
+     * - It will perform a topological sort on the current dependencyGraph (only for registered plugins).
+     * - If a plugin has a missing dependency (not registered), it will be skipped and a log entry will be created.
+     * - If a circular dependency is detected it will be logged and those plugins will not be enabled.
+     *
+     * This method can be called after doing several loadPlugin(...) and loadPluginInstance(...) calls.
+     */
+    public void enablePendingPlugins() {
+        // Build a map of pluginName -> dependencies filtered to registered plugins
+        Map<String, Set<String>> graph = new HashMap<>();
+        for (String pluginName : loadedPlugins.keySet()) {
+            Set<String> deps = dependencyGraph.getOrDefault(pluginName, Collections.emptySet());
+            // keep only dependencies that are registered (we cannot enable against unregistered plugins)
+            Set<String> filtered = new HashSet<>();
+            for (String d : deps) {
+                if (loadedPlugins.containsKey(d)) {
+                    filtered.add(d);
+                } else {
+                    log.warn("Plugin " + pluginName + " depends on unregistered plugin " + d + ", will skip until registered.");
+                }
             }
+            graph.put(pluginName, filtered);
         }
 
-        return result;
-    }
-
-    private void resolveDependencyOrder(String pluginName, Map<String, PluginCandidate> candidates,
-                                        List<String> result, Set<String> visited, Set<String> visiting) {
-        if (visiting.contains(pluginName)) {
-            throw new IllegalStateException("Circular dependency detected involving: " + pluginName);
-        }
-
-        if (visited.contains(pluginName)) {
+        List<String> order;
+        try {
+            order = topoSort(graph);
+        } catch (IllegalStateException ise) {
+            log.error("Cannot enable pending plugins due to circular dependency: " + ise.getMessage());
             return;
         }
 
-        visiting.add(pluginName);
+        // Enable in topological order, but only if pending
+        for (String pluginName : order) {
+            if (!pendingToEnable.contains(pluginName)) continue; // already enabled or not pending
+            // ensure all dependencies are enabled before enabling this one
+            Set<String> deps = graph.getOrDefault(pluginName, Collections.emptySet());
+            boolean depsEnabled = true;
+            for (String d : deps) {
+                if (!enabledPlugins.contains(d)) {
+                    depsEnabled = false;
+                    log.warn("Skipping enable of " + pluginName + " because dependency not yet enabled: " + d);
+                    break;
+                }
+            }
+            if (!depsEnabled) continue;
 
-        PluginCandidate candidate = candidates.get(pluginName);
-        if (candidate != null) {
-            for (String dependency : candidate.dependencies) {
-                if (candidates.containsKey(dependency)) {
-                    resolveDependencyOrder(dependency, candidates, result, visited, visiting);
-                } else if (!loadedPlugins.containsKey(dependency)) {
-                    log.error("Missing dependency: " + dependency + " for plugin: " + pluginName);
+            PluginMetadata metadata = loadedPlugins.get(pluginName);
+            if (metadata == null) {
+                log.error("Pending plugin metadata missing for: " + pluginName);
+                pendingToEnable.remove(pluginName);
+                continue;
+            }
+
+            try {
+                enablePlugin(metadata.getInstance());
+                enabledPlugins.add(pluginName);
+                pendingToEnable.remove(pluginName);
+                // log.info("Enabled plugin: " + pluginName);
+            } catch (Exception e) {
+                log.error("Error enabling plugin: " + pluginName, e);
+                // do not remove from pending; maybe a later attempt will succeed
+            }
+        }
+
+        // If there are still pending plugins that couldn't be enabled because their dependencies were not enabled,
+        // attempt another pass until no progress is made (handles multi-level dependency chains).
+        boolean progress = true;
+        while (progress && !pendingToEnable.isEmpty()) {
+            progress = false;
+            Iterator<String> it = new ArrayList<>(pendingToEnable).iterator();
+            while (it.hasNext()) {
+                String pluginName = it.next();
+                Set<String> deps = graph.getOrDefault(pluginName, Collections.emptySet());
+                boolean depsEnabledNow = true;
+                for (String d : deps) {
+                    if (!enabledPlugins.contains(d)) {
+                        depsEnabledNow = false;
+                        break;
+                    }
+                }
+                if (!depsEnabledNow) continue;
+
+                PluginMetadata metadata = loadedPlugins.get(pluginName);
+                if (metadata == null) {
+                    pendingToEnable.remove(pluginName);
+                    progress = true;
+                    continue;
+                }
+
+                try {
+                    enablePlugin(metadata.getInstance());
+                    enabledPlugins.add(pluginName);
+                    pendingToEnable.remove(pluginName);
+                    progress = true;
+
+                    } catch (Exception e) {
+                    log.error("Error enabling plugin on later pass: " + pluginName, e);
+                    // leave pending
                 }
             }
         }
 
-        visiting.remove(pluginName);
-        visited.add(pluginName);
-        result.add(pluginName);
+        if (!pendingToEnable.isEmpty()) {
+            log.warn("Some plugins remain pending and could not be enabled (missing dependencies or errors): " + pendingToEnable);
+        }
+    }
+
+    /**
+     * Topological sort for the dependency graph.
+     * Throws IllegalStateException on cycles.
+     */
+    private List<String> topoSort(Map<String, Set<String>> graph) {
+        List<String> result = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        Set<String> visiting = new HashSet<>();
+
+        for (String node : graph.keySet()) {
+            if (!visited.contains(node)) {
+                dfsTopo(node, graph, visited, visiting, result);
+            }
+        }
+        return result;
+    }
+
+    private void dfsTopo(String node, Map<String, Set<String>> graph,
+                         Set<String> visited, Set<String> visiting, List<String> result) {
+        if (visiting.contains(node)) {
+            throw new IllegalStateException("Circular dependency involving: " + node);
+        }
+        if (visited.contains(node)) return;
+
+        visiting.add(node);
+        for (String dep : graph.getOrDefault(node, Collections.emptySet())) {
+            dfsTopo(dep, graph, visited, visiting, result);
+        }
+        visiting.remove(node);
+        visited.add(node);
+        result.add(node);
+    }
+
+    private void enablePlugin(JavaPlugin pluginInstance) {
+        log.info("Loading plugin: {} {}", pluginInstance.getName(), pluginInstance.getVersion());
+        pluginInstance.inject(this.eventManager, this);
+        pluginInstance.load();
     }
 
     private Set<String> findDependents(String pluginName) {

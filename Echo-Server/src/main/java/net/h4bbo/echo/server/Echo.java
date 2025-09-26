@@ -115,10 +115,10 @@ public class Echo {
             // You would usually use a DI container, here just placeholders
 
 
-            log.info("Loading all system module plugins");
+            log.info("Loading all system plugins");
             pluginLoader.findAndLoadAllJavaPlugins();
 
-            log.info("Loading all custom made plugins");
+            log.info("Loading all custom plugins");
             pluginManager.loadAllPlugins();
 
             log.success("Loaded {} plugins", pluginManager.getAllPlugins().size());

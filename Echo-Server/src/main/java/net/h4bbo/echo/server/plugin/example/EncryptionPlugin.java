@@ -5,19 +5,16 @@ import io.netty.channel.ChannelId;
 import net.h4bbo.echo.api.event.EventHandler;
 import net.h4bbo.echo.api.event.types.client.*;
 import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
-import net.h4bbo.echo.api.plugin.DependsOnAttribute;
+import net.h4bbo.echo.api.plugin.DependsOn;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
 import net.h4bbo.echo.server.plugin.example.handshake.InitCryptoMessageEvent;
-import net.h4bbo.echo.storage.StorageContext;
-import net.h4bbo.echo.storage.models.user.User;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Example plugin implementation
-@DependsOnAttribute({"CorePlugin", "DatabasePlugin"})
+@DependsOn({"CorePlugin", "DatabasePlugin"})
 public class EncryptionPlugin extends JavaPlugin {
     private SimpleLog logger;
     private final Map<ChannelId, RC4Holder> encryptionHolders
