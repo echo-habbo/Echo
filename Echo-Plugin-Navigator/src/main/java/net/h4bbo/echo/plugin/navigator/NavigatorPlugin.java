@@ -8,6 +8,7 @@ import net.h4bbo.echo.api.plugin.DependsOn;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
 import net.h4bbo.echo.plugin.navigator.messages.user.GetCreditsMessageEvent;
 import net.h4bbo.echo.plugin.navigator.messages.user.UserInfoMessageEvent;
+import net.h4bbo.echo.storage.models.user.User;
 
 @DependsOn({"HandshakePlugin"})
 public class NavigatorPlugin extends JavaPlugin {
@@ -23,7 +24,7 @@ public class NavigatorPlugin extends JavaPlugin {
 
     @EventHandler
     public void onPlayerLoginEvent(PlayerLoginEvent event) {
-        this.getLogger().info("{} has logged in!", event.getPlayer());
+        this.getLogger().info("{} has logged in!", event.getPlayer().attr(User.DATA_KEY).get().getName());
 
         var messageHandler = event.getPlayer().getConnection().getMessageHandler();
 

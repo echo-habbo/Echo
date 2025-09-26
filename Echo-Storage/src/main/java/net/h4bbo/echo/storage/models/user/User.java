@@ -1,5 +1,6 @@
 package net.h4bbo.echo.storage.models.user;
 
+import io.netty.util.AttributeKey;
 import lombok.*;
 import org.oldskooler.entity4j.annotations.Column;
 import org.oldskooler.entity4j.annotations.Entity;
@@ -9,6 +10,7 @@ import org.oldskooler.entity4j.annotations.Id;
 @ToString
 @EqualsAndHashCode
 public class User {
+    public static final AttributeKey<User> DATA_KEY = AttributeKey.valueOf("net.h4bbo.echo.storage.models.user.User");
     @Getter
     @Id(auto = true)
     private int id;

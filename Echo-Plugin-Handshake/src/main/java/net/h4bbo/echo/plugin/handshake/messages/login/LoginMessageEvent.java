@@ -28,9 +28,7 @@ public class LoginMessageEvent extends MessageEvent {
                             f.equals(User::getName, username).equals(User::getPassword, password))
                     .first();
 
-            if (user.isPresent()) {
-
-            }
+            user.ifPresent(value -> player.attr(User.DATA_KEY).setIfAbsent(value));
 
             boolean loginCancelled = user.isEmpty();
 
@@ -47,6 +45,10 @@ public class LoginMessageEvent extends MessageEvent {
         }
 
         player.setAuthenticated(true);
+
+        PacketCodec.create(139)
+                .append(DataCodec.BYTES, "Hello " + player.attr(User.DATA_KEY).get().getName())
+                        .send(player);
 
         PacketCodec.create(2)
                 .send(player);

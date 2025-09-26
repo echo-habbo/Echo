@@ -1,9 +1,11 @@
-package net.h4bbo.echo.server.plugin.events;
+package net.h4bbo.echo.server.events;
 
+import io.netty.util.internal.logging.InternalLogger;
 import net.h4bbo.echo.api.event.*;
 import net.h4bbo.echo.api.event.types.ICancellableEvent;
 import net.h4bbo.echo.api.event.types.IEvent;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
+import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -11,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class EventManager implements IEventManager {
+    private final SimpleLog logger = SimpleLog.of(EventManager.class);
 
     public Map<Class<?>, List<RegisteredHandler>> getHandlers() {
         return handlers;
@@ -107,6 +110,11 @@ public class EventManager implements IEventManager {
 
         boolean isCancellable = ev instanceof ICancellableEvent;
         List<RegisteredHandler> firedOnce = new ArrayList<>();
+
+        // Prevent spamz
+        if (!ev.getClass().getCanonicalName().startsWith("net.h4bbo.echo.api.event.types.client")) {
+            this.logger.debug("Firing event: " + ev.getClass().getCanonicalName());
+        }
 
         for (RegisteredHandler h : snapshot) {
             // Only skip if cancelled, ignoreCancelled is true, and NOT MONITOR

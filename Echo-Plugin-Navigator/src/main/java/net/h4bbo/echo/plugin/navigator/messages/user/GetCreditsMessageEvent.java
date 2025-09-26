@@ -16,17 +16,10 @@ public class GetCreditsMessageEvent extends MessageEvent {
 
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
-        try (var db = StorageContextFactory.getStorage()) {
-            var user = db.from(User.class)
-                    .filter(f -> f.equals(User::getName, "Alex"))
-                    .toList().get(0);
+        var user = player.attr(User.DATA_KEY).get();
 
-            PacketCodec.create(6)
-                    .append(DataCodec.BYTES, user.getCredits())
-                    .send(player);
-
-        } catch (Exception e) {
-            this.getLogger().error("Error occurred when selecting user: ", e);
-        }
+        PacketCodec.create(6)
+                .append(DataCodec.BYTES, user.getCredits())
+                .send(player);
     }
 }

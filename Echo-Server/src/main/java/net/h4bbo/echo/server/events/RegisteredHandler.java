@@ -1,4 +1,4 @@
-package net.h4bbo.echo.server.plugin.events;
+package net.h4bbo.echo.server.events;
 
 import net.h4bbo.echo.api.event.EventPriority;
 import net.h4bbo.echo.api.event.types.IEvent;

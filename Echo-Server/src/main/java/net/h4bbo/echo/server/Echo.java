@@ -3,7 +3,7 @@ package net.h4bbo.echo.server;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.server.plugin.PluginLoader;
-import net.h4bbo.echo.server.plugin.events.EventManager;
+import net.h4bbo.echo.server.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
 import net.h4bbo.echo.server.network.session.ConnectionManager;
 import net.h4bbo.echo.server.plugin.PluginManager;
