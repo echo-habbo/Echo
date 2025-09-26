@@ -21,6 +21,7 @@ public class ConnectionManager {
         this.connections = new ConcurrentHashMap<>();
 
     }
+
     public void addConnection(Channel channel) {
         if (channel == null) {
             throw new IllegalArgumentException("Channel must not be null");

@@ -1,6 +1,7 @@
 package net.h4bbo.echo.api.plugin;
 
 import net.h4bbo.echo.api.event.IEventManager;
+import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.util.Objects;
 
@@ -8,11 +9,13 @@ import java.util.Objects;
 public abstract class JavaPlugin {
     private IEventManager eventManager;
     private IPluginManager pluginManager;
+    private SimpleLog logger;
 
     public void inject(IEventManager eventManager, IPluginManager pluginManager) {
         if (!Objects.isNull(this.eventManager) || !Objects.isNull(this.pluginManager)) throw new RuntimeException("plugin classes have already injected");
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
+        this.logger = SimpleLog.of(this.getClass());
     }
 
     public IEventManager getEventManager() {
@@ -49,5 +52,9 @@ public abstract class JavaPlugin {
         return this.getClass().getPackage().getImplementationVersion() != null
                 ? this.getClass().getPackage().getImplementationVersion()
                 : "1.0.0";
+    }
+
+    public SimpleLog getLogger() {
+        return logger;
     }
 }

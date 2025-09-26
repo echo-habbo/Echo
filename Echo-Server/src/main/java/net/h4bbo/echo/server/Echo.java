@@ -1,7 +1,9 @@
 package net.h4bbo.echo.server;
 
+import com.sun.source.util.Plugin;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
+import net.h4bbo.echo.server.plugin.PluginLoader;
 import net.h4bbo.echo.server.plugin.example.EncryptionPlugin;
 import net.h4bbo.echo.server.plugin.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
@@ -20,6 +22,7 @@ public class Echo {
     public static Properties configuration;
     public static IPluginManager pluginManager;
     public static IEventManager eventManager;
+    public static PluginLoader pluginLoader;
     public static ConnectionManager connectionManager;
     public static GameServer server;
 
@@ -31,6 +34,7 @@ public class Echo {
         eventManager = new EventManager();
         pluginManager = new PluginManager("plugins", eventManager);
         connectionManager = new ConnectionManager(eventManager, pluginManager);
+        pluginLoader = new PluginLoader(eventManager, pluginManager);
     }
 
     public static void boot() {
@@ -47,8 +51,6 @@ public class Echo {
         }
 
         log.success("server.conf found");
-
-        pluginManager.loadPluginInstance(new EncryptionPlugin());
 
         try {
             if (!tryDatabaseConnection()) {
@@ -112,8 +114,11 @@ public class Echo {
             // Register pluginManager and eventManager
             // You would usually use a DI container, here just placeholders
 
-            log.info("Loading plugins…");
 
+            log.info("Loading all system module plugins");
+            pluginLoader.findAndLoadAllJavaPlugins();
+
+            log.info("Loading all custom made plugins");
             pluginManager.loadAllPlugins();
 
             log.success("Loaded {} plugins", pluginManager.getAllPlugins().size());

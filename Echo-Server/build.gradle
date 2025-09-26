@@ -10,6 +10,4 @@ apply from: "../root.gradle"
 
 dependencies {
     implementation project (":Echo-API")
-    implementation project (":Echo-Common")
-    implementation project (":Echo-Storage")
 }
