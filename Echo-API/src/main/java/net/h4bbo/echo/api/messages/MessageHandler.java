@@ -53,7 +53,6 @@ public class MessageHandler implements IMessageHandler {
         }
     }
 
-
     // Deregisters all handlers of the specified type.
     public <THandler extends MessageEvent> int deregister(JavaPlugin plugin, Class<THandler> handlerClass) {
         int headerId;

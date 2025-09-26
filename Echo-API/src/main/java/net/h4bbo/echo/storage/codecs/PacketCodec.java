@@ -145,7 +145,7 @@ public class PacketCodec implements IPacketCodec {
             byte[] bytes = (byte[]) value;
             write(bytes);
         } else {
-            throw new IllegalArgumentException("Value must be either String or byte array for BYTES codec");
+            write(value.toString().getBytes(getProtocolEncoding()));
         }
     }
 

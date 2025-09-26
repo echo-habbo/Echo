@@ -18,14 +18,12 @@ public class HandshakePlugin extends JavaPlugin {
 
     @Override
     public void load() {
-        this.getLogger().info("{} loaded!", this.getName());
         this.getEventManager().register(this, this);
     }
 
     @Override
     public void unload() {
         this.encryptionHolders.clear();
-        this.getLogger().info("{} unloaded!", this.getName());
     }
 
     @EventHandler
