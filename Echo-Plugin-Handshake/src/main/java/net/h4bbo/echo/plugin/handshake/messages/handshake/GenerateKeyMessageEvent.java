@@ -9,7 +9,7 @@ import net.h4bbo.echo.plugin.handshake.messages.login.GetAvailableSetsMessageEve
 import net.h4bbo.echo.plugin.handshake.messages.login.GetDateMessageEvent;
 import net.h4bbo.echo.plugin.handshake.messages.login.GetSessionParamsMessageEvent;
 import net.h4bbo.echo.plugin.handshake.messages.login.LoginMessageEvent;
-import net.h4bbo.echo.storage.codecs.PacketCodec;
+import net.h4bbo.echo.codecs.PacketCodec;
 
 public class GenerateKeyMessageEvent extends MessageEvent {
     @Override

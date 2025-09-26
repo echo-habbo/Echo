@@ -9,15 +9,21 @@ import net.h4bbo.echo.api.network.session.IConnectionSend;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.server.Echo;
 import net.h4bbo.echo.server.network.session.ConnectionSession;
+import net.h4bbo.echo.storage.util.attributable.Attribute;
+import net.h4bbo.echo.storage.util.attributable.AttributeKey;
+import net.h4bbo.echo.storage.util.attributable.AttributeMap;
+import net.h4bbo.echo.storage.util.attributable.DefaultAttributeMap;
 
 import java.util.concurrent.CompletableFuture;
 
 public class Player implements IPlayer {
-    private IConnectionSession connection;
+    private final IConnectionSession connection;
+    private final AttributeMap attributeMap;
     private boolean isAuthenticated;
 
     public Player(ConnectionSession connectionSession) {
         this.connection = connectionSession;
+        this.attributeMap = new DefaultAttributeMap();
     }
 
     @Override

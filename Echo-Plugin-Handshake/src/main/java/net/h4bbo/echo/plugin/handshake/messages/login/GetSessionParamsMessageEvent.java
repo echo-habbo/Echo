@@ -4,7 +4,7 @@ import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
-import net.h4bbo.echo.storage.codecs.PacketCodec;
+import net.h4bbo.echo.codecs.PacketCodec;
 
 public class GetSessionParamsMessageEvent extends MessageEvent {
     @Override

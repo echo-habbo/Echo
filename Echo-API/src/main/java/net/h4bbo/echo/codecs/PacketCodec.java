@@ -1,4 +1,5 @@
-package net.h4bbo.echo.storage.codecs;
+package net.h4bbo.echo.codecs;
+
 import net.h4bbo.echo.common.util.specialised.WireEncoding;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;

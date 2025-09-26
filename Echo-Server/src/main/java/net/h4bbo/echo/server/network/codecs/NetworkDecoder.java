@@ -6,7 +6,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.event.types.client.ConnectionReceivedDataEvent;
 import net.h4bbo.echo.api.plugin.IPluginManager;
-import net.h4bbo.echo.storage.codecs.ClientCodec;
+import net.h4bbo.echo.codecs.ClientCodec;
 import net.h4bbo.echo.common.util.specialised.Base64Encoding;
 import net.h4bbo.echo.server.network.GameNetworkHandler;
 

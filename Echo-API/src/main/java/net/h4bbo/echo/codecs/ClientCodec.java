@@ -1,4 +1,4 @@
-package net.h4bbo.echo.storage.codecs;
+package net.h4bbo.echo.codecs;
 
 import io.netty.buffer.ByteBuf;
 import net.h4bbo.echo.common.util.specialised.WireEncoding;

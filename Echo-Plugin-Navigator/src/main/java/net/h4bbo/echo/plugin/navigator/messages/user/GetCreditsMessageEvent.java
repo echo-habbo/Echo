@@ -5,7 +5,7 @@ import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.storage.StorageContextFactory;
-import net.h4bbo.echo.storage.codecs.PacketCodec;
+import net.h4bbo.echo.codecs.PacketCodec;
 import net.h4bbo.echo.storage.models.user.User;
 
 public class GetCreditsMessageEvent extends MessageEvent {
