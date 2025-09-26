@@ -57,11 +57,8 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
             return;
         }
 
-        connection.getMessageHandler().deregister(null, InitCryptoMessageEvent.class);
-        connection.getMessageHandler().deregister(null, GenerateKeyMessageEvent.class);
-
         try {
-            connection.close();
+            connection.getPlayer().disconnect();
         } catch (Exception ex) {
             log.info("Exception when disconnected from server: {}", connection.getIpAddress(), ex);
         } finally {

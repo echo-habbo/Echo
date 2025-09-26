@@ -40,7 +40,6 @@ public class HandshakePlugin extends JavaPlugin {
         );
 
         event.getConnection().getMessageHandler().register(this, InitCryptoMessageEvent.class);
-        this.getLogger().info("Client {} connected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
@@ -49,7 +48,6 @@ public class HandshakePlugin extends JavaPlugin {
                 event.getConnection().getChannel().id()
         );
 
-        this.getLogger().info("Client {} disconnected", event.getConnection().getChannel().remoteAddress().toString());
     }
 
     @EventHandler
@@ -71,8 +69,6 @@ public class HandshakePlugin extends JavaPlugin {
 
         buffer.writeBytes(deciphered);
         event.setBuffer(buffer);
-
-        this.getLogger().debug("Client decipher: {}", new String(message, ProtocolCodec.getEncoding()));
     }
 
     public Map<ChannelId, RC4Holder> getEncryptionHolders() {

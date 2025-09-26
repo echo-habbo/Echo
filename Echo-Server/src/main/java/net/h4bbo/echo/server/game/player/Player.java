@@ -1,19 +1,33 @@
 package net.h4bbo.echo.server.game.player;
 
 import net.h4bbo.echo.api.commands.CommandSender;
+import net.h4bbo.echo.api.event.types.player.PlayerDisconnectEvent;
+import net.h4bbo.echo.api.event.types.player.PlayerLoginEvent;
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.network.session.IConnectionSend;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
+import net.h4bbo.echo.server.Echo;
 import net.h4bbo.echo.server.network.session.ConnectionSession;
 
 import java.util.concurrent.CompletableFuture;
 
 public class Player implements IPlayer {
     private IConnectionSession connection;
+    private boolean isAuthenticated;
 
     public Player(ConnectionSession connectionSession) {
         this.connection = connectionSession;
+    }
+
+    @Override
+    public boolean isAuthenticated() {
+        return isAuthenticated;
+    }
+
+    @Override
+    public void setAuthenticated(boolean flag) {
+        this.isAuthenticated = flag;
     }
 
     @Override
@@ -23,6 +37,11 @@ public class Player implements IPlayer {
 
     @Override
     public CompletableFuture<Void> disconnect() {
+        if (this.isAuthenticated) {
+            this.isAuthenticated = false;
+            Echo.getEventManager().publish(new PlayerDisconnectEvent(this));
+        }
+
         return null;
     }
 

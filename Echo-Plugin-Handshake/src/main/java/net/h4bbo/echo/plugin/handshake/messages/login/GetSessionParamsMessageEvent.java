@@ -1,4 +1,4 @@
-package net.h4bbo.echo.plugin.handshake.messages.handshake;
+package net.h4bbo.echo.plugin.handshake.messages.login;
 
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;
@@ -36,7 +36,7 @@ public class GetSessionParamsMessageEvent extends MessageEvent {
                 .append(DataCodec.BOOL, true) // Whether tutorial is enabled or not
                 .send(player);
 
-        // Not needed after handshake
+        // Not needed after login
         player.getConnection().getMessageHandler().deregister(null, GetSessionParamsMessageEvent.class);
     }
 }

@@ -45,6 +45,11 @@ public class User {
 
     @Getter
     @Setter
+    @Column(name = "birthday", nullable = false, defaultValue = "01.01.1970")
+    private String birthday;
+
+    @Getter
+    @Setter
     @Column(name = "motto", nullable = false, defaultValue = "''")
     private String motto;
 
@@ -72,4 +77,9 @@ public class User {
     @Setter
     @Column(name = "is_online", nullable = false, defaultValue = "0")
     private boolean isOnline;
+
+    @Getter
+    @Setter
+    @Column(name = "direct_mail", nullable = false, defaultValue = "0")
+    private boolean directMail;
 }

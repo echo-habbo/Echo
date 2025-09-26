@@ -36,7 +36,7 @@ public class Echo {
     }
 
     public static void boot() {
-        log.info("Starting server for " + System.getProperty("user.name") + "...");
+        log.info("Starting server for " + System.getProperty("navigator.name") + "...");
         log.info("Checking for server.conf");
 
         ensureDefaultConfig("server.conf");
@@ -80,7 +80,7 @@ public class Echo {
                 writer.write("db.host=localhost\n");
                 writer.write("db.port=3306\n");
                 writer.write("db.name=echo\n");
-                writer.write("db.user=root\n");
+                writer.write("db.navigator=root\n");
                 writer.write("db.pass=password\n");
 
                 // Default server socket settings

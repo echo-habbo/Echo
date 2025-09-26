@@ -5,7 +5,10 @@ import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.plugin.handshake.HandshakePlugin;
-import net.h4bbo.echo.plugin.handshake.messages.user.LoginMessageEvent;
+import net.h4bbo.echo.plugin.handshake.messages.login.GetAvailableSetsMessageEvent;
+import net.h4bbo.echo.plugin.handshake.messages.login.GetDateMessageEvent;
+import net.h4bbo.echo.plugin.handshake.messages.login.GetSessionParamsMessageEvent;
+import net.h4bbo.echo.plugin.handshake.messages.login.LoginMessageEvent;
 import net.h4bbo.echo.storage.codecs.PacketCodec;
 
 public class GenerateKeyMessageEvent extends MessageEvent {
@@ -23,10 +26,10 @@ public class GenerateKeyMessageEvent extends MessageEvent {
             return;
         }
 
-        // Not needed after handshake
+        // Not needed after login
         player.getConnection().getMessageHandler().deregister(encryptionPlugin, GenerateKeyMessageEvent.class);
 
-        // Needed after handshake
+        // Needed after login
         player.getConnection().getMessageHandler().register(encryptionPlugin, GetSessionParamsMessageEvent.class);
         player.getConnection().getMessageHandler().register(encryptionPlugin, GetDateMessageEvent.class);
         player.getConnection().getMessageHandler().register(encryptionPlugin, GetAvailableSetsMessageEvent.class);

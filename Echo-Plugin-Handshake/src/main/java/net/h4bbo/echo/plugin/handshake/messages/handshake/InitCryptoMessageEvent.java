@@ -14,10 +14,10 @@ public class InitCryptoMessageEvent extends MessageEvent {
 
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
-        // Needed after handshake
+        // Needed after login
         player.getConnection().getMessageHandler().register(this.getPlugin(), GenerateKeyMessageEvent.class);
 
-        // Not needed after handshake
+        // Not needed after login
         player.getConnection().getMessageHandler().deregister(this.getPlugin(), InitCryptoMessageEvent.class);
 
         // Send crypto parameters
