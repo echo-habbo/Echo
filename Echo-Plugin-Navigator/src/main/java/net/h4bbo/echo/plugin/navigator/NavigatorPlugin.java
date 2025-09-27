@@ -5,30 +5,28 @@ import net.h4bbo.echo.api.event.types.player.PlayerDisconnectEvent;
 import net.h4bbo.echo.api.event.types.player.PlayerLoginEvent;
 import net.h4bbo.echo.api.plugin.DependsOn;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
+import net.h4bbo.echo.api.services.navigator.INavigatorService;
 import net.h4bbo.echo.plugin.navigator.messages.navigator.NavigateMessageEvent;
 import net.h4bbo.echo.plugin.navigator.messages.user.GetCreditsMessageEvent;
 import net.h4bbo.echo.plugin.navigator.messages.user.UserInfoMessageEvent;
 import net.h4bbo.echo.storage.StorageContextFactory;
 import net.h4bbo.echo.storage.models.navigator.NavigatorCategoryData;
 import net.h4bbo.echo.storage.models.user.UserData;
+import org.oldskooler.inject4j.ServiceCollection;
 
 import java.sql.SQLException;
 import java.util.List;
 
 @DependsOn({"HandshakePlugin", "RoomPlugin"})
 public class NavigatorPlugin extends JavaPlugin {
-    private List<NavigatorCategoryData> navigatorCategories;
+    @Override
+    public void assignServices(ServiceCollection services) {
+        services.addSingleton(INavigatorService.class, NavigatorService.class);
+    }
 
     @Override
     public void load() {
-        try (var ctx = StorageContextFactory.getStorage()) {
-            this.navigatorCategories = ctx.from(NavigatorCategoryData.class).toList();
-        } catch (SQLException e) {
-            this.getLogger().error("Error loading navigator categories: ", e);
-        }
-
-        this.getLogger().info("Loaded {} navigator categories", this.navigatorCategories.size());
-
+        // this.getLogger().info("Loaded {} navigator categories", this.navigatorCategories.size());
         this.getEventManager().register(this, this);
     }
 
@@ -54,14 +52,15 @@ public class NavigatorPlugin extends JavaPlugin {
     }
 
     public NavigatorCategoryData getTopParentCategory(int categoryId) {
-        NavigatorCategoryData current = this.navigatorCategories.stream()
+        NavigatorCategoryData current = this.getNavigatorCategories()
+                .stream()
                 .filter(c -> c.getId() == categoryId)
                 .findFirst()
                 .orElse(null);
 
         while (current != null && current.getParentId() != 0) {
             int parentId = current.getParentId();
-            current = this.navigatorCategories.stream()
+            current = this.getNavigatorCategories().stream()
                     .filter(c -> c.getId() == parentId)
                     .findFirst()
                     .orElse(null);
@@ -70,7 +69,9 @@ public class NavigatorPlugin extends JavaPlugin {
     }
 
     public List<NavigatorCategoryData> getNavigatorCategories() {
-        return navigatorCategories;
+        return this.getServices()
+                .getRequiredService(INavigatorService.class)
+                .getCategories();
     }
 
     public boolean isPublicRoomCategory(NavigatorCategoryData navigatorCategory) {

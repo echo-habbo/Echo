@@ -1,5 +1,8 @@
 package net.h4bbo.echo.api.plugin;
 
+import org.oldskooler.inject4j.ServiceCollection;
+import org.oldskooler.inject4j.ServiceProvider;
+
 import java.util.Map;
 
 public interface IPluginManager {
@@ -7,16 +10,18 @@ public interface IPluginManager {
     /**
      * Load all plugins from the plugin directory
      */
-    void loadAllPlugins();
+    void loadAllPlugins(ServiceCollection serviceCollection);
 
     /**
      * Load a specific plugin by JAR file path
      * @param jarPath the file path to the plugin JAR
      * @return true if loaded successfully, false otherwise
      */
-    boolean loadPlugin(String jarPath);
+    boolean loadPlugin(String jarPath, ServiceCollection serviceCollection);
 
-    boolean loadPluginInstance(JavaPlugin pluginInstance);
+    boolean loadPluginInstance(JavaPlugin pluginInstance, ServiceCollection serviceCollection);
+
+    void enablePendingPlugins(ServiceProvider serviceProvider);
 
     /**
      * Unload a specific plugin

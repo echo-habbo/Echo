@@ -8,6 +8,8 @@ import net.h4bbo.echo.server.network.GameServer;
 import net.h4bbo.echo.server.network.session.ConnectionManager;
 import net.h4bbo.echo.server.plugin.PluginManager;
 import net.h4bbo.echo.storage.StorageContextFactory;
+import org.oldskooler.inject4j.ServiceCollection;
+import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.io.File;
@@ -26,8 +28,12 @@ public class Echo {
 
     private static final SimpleLog log;
 
+    private static final ServiceCollection serviceCollection;
+    private static ServiceProvider serviceProvider;
+
     static {
         log = SimpleLog.of(Echo.class);
+        serviceCollection = new ServiceCollection();
         configuration = new Properties();
         eventManager = new EventManager();
         pluginManager = new PluginManager("plugins", eventManager);
@@ -114,10 +120,13 @@ public class Echo {
 
 
             log.info("Loading all system plugins");
-            pluginLoader.findAndLoadAllJavaPlugins();
+            pluginLoader.findAndLoadAllJavaPlugins(serviceCollection);
 
             log.info("Loading all custom plugins");
-            pluginManager.loadAllPlugins();
+            pluginManager.loadAllPlugins(serviceCollection);
+
+            serviceProvider = serviceCollection.buildServiceProvider();
+            pluginManager.enablePendingPlugins(serviceProvider);
 
             log.success("Loaded {} plugins", pluginManager.getAllPlugins().size());
             return true;

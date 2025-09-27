@@ -6,8 +6,10 @@ import net.h4bbo.echo.api.event.EventHandler;
 import net.h4bbo.echo.api.event.types.client.*;
 import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
+import net.h4bbo.echo.api.services.navigator.INavigatorService;
 import net.h4bbo.echo.plugin.handshake.encryption.RC4Holder;
 import net.h4bbo.echo.plugin.handshake.messages.handshake.InitCryptoMessageEvent;
+import org.oldskooler.inject4j.ServiceCollection;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HandshakePlugin extends JavaPlugin {
     private final Map<ChannelId, RC4Holder> encryptionHolders
             = new ConcurrentHashMap<>();
+
+    @Override
+    public void assignServices(ServiceCollection services) {
+
+    }
 
     @Override
     public void load() {

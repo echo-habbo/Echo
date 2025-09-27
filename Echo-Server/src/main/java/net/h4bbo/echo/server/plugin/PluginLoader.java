@@ -3,6 +3,7 @@ package net.h4bbo.echo.server.plugin;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
+import org.oldskooler.inject4j.ServiceCollection;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.io.File;
@@ -25,7 +26,7 @@ public class PluginLoader {
 
     }
 
-    public ArrayList<JavaPlugin> findAndLoadAllJavaPlugins() {
+    public ArrayList<JavaPlugin> findAndLoadAllJavaPlugins(ServiceCollection serviceCollection) {
         var baseClass = JavaPlugin.class;
         var instantiated = new ArrayList<JavaPlugin>();
 
@@ -88,7 +89,7 @@ public class PluginLoader {
 
                 // hand to plugin loader
                 try {
-                    this.pluginManager.loadPluginInstance(instance);
+                    this.pluginManager.loadPluginInstance(instance, serviceCollection);
                     instantiated.add(instance);
                 } catch (Exception ex) {
                     SimpleLog.of(PluginLoader.class).error("Failed to load plugin: ", ex);

@@ -21,6 +21,7 @@ public class StorageContextFactory {
             StorageSeeder.init(ctx);
         }
 
+        /*
         var t = ctx.from(RoomData.class).as("r")
                 .select(s -> s
                         .all(RoomData.class)
@@ -29,6 +30,8 @@ public class StorageContextFactory {
                         on.eq(RoomData::getOwnerId, UserData::getId));
 
         System.out.println(t.toList());
+         */
+
         return ctx;
     }
 

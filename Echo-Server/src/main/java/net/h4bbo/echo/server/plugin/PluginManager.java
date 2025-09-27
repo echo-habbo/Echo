@@ -2,6 +2,9 @@ package net.h4bbo.echo.server.plugin;
 
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.*;
+import net.h4bbo.echo.plugin.navigator.NavigatorPlugin;
+import org.oldskooler.inject4j.ServiceCollection;
+import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.io.File;
@@ -10,7 +13,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -33,7 +36,7 @@ public class PluginManager implements IPluginManager {
      * Load all plugins from the plugin directory.
      * This will *scan + create* all plugin metadata/instances first, then enable them at the end.
      */
-    public void loadAllPlugins() {
+    public void loadAllPlugins(ServiceCollection serviceCollection) {
         File dir = new File(pluginDirectory);
         boolean dirExists = dir.exists();
 
@@ -68,14 +71,11 @@ public class PluginManager implements IPluginManager {
         // Create metadata/instances for all candidates without enabling them.
         for (PluginCandidate candidate : candidates.values()) {
             try {
-                registerPluginCandidate(candidate);
+                registerPluginCandidate(candidate, serviceCollection);
             } catch (Exception e) {
                 log.error("Error registering plugin candidate: " + candidate.name, e);
             }
         }
-
-        // Now that all plugins are registered, enable them in dependency order.
-        enablePendingPlugins();
     }
 
     /**
@@ -85,7 +85,7 @@ public class PluginManager implements IPluginManager {
      * but does NOT enable it immediately. Call enablePendingPlugins() after loading multiple plugins,
      * or call it manually to attempt enabling now.
      */
-    public boolean loadPlugin(String jarPath) {
+    public boolean loadPlugin(String jarPath, ServiceCollection serviceCollection) {
         try {
             File jarFile = new File(jarPath);
             PluginCandidate candidate = scanPlugin(jarFile);
@@ -94,7 +94,7 @@ public class PluginManager implements IPluginManager {
             }
 
             // Register candidate (creates instance/metadata and marks pending) but do not enable here.
-            return registerPluginCandidate(candidate);
+            return registerPluginCandidate(candidate, serviceCollection);
         } catch (Exception e) {
             log.error("Error loading plugin: " + jarPath, e);
             return false;
@@ -165,7 +165,7 @@ public class PluginManager implements IPluginManager {
         }
 
         // Then register again (but do not enable automatically)
-        return loadPlugin(jarPath);
+        return loadPlugin(jarPath, null);
     }
 
     /**
@@ -302,7 +302,7 @@ public class PluginManager implements IPluginManager {
      * Register a candidate (create classloader, instantiate plugin instance, add metadata and dependency graph),
      * but do NOT enable it yet. Add to pendingToEnable.
      */
-    private boolean registerPluginCandidate(PluginCandidate candidate) throws Exception {
+    private boolean registerPluginCandidate(PluginCandidate candidate, ServiceCollection serviceCollection) throws Exception {
         if (candidate == null) return false;
         if (loadedPlugins.containsKey(candidate.name)) {
             log.error("plugin already registered: " + candidate.name);
@@ -324,6 +324,10 @@ public class PluginManager implements IPluginManager {
                 candidate.name, candidate.version, candidate.dependencies,
                 plugin, classLoader, candidate.jarPath);
 
+        if (serviceCollection != null) {
+            registerServices(serviceCollection, plugin);
+        }
+
         // Register metadata and dependency graph, but don't call enablePlugin() yet.
         loadedPlugins.put(candidate.name, metadata);
         dependencyGraph.put(candidate.name, new HashSet<>(Arrays.asList(candidate.dependencies)));
@@ -333,6 +337,16 @@ public class PluginManager implements IPluginManager {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
+    private static void registerServices(ServiceCollection serviceCollection, JavaPlugin plugin) {
+        // Assign own plugin instance so anything can get it and also have it injected in constructors
+        Class<JavaPlugin> clazz = (Class<JavaPlugin>) plugin.getClass();
+        serviceCollection.addSingleton(clazz, () -> plugin);
+
+        // Allow our own services to be assigned and shared
+        plugin.assignServices(serviceCollection);
+    }
+
     /**
      * Add a plugin instance directly.
      * Useful for testing or dynamically created plugins.
@@ -340,7 +354,7 @@ public class PluginManager implements IPluginManager {
      * This will register the plugin and add it to pendingToEnable, but will NOT enable it.
      * Call enablePendingPlugins() after registering instances to enable them in correct order.
      */
-    public boolean loadPluginInstance(JavaPlugin pluginInstance) {
+    public boolean loadPluginInstance(JavaPlugin pluginInstance, ServiceCollection serviceCollection) {
         if (pluginInstance == null) return false;
 
         String name = pluginInstance.getName();
@@ -363,6 +377,8 @@ public class PluginManager implements IPluginManager {
                 null // no jar path
         );
 
+        registerServices(serviceCollection, pluginInstance);
+
         loadedPlugins.put(name, metadata);
         dependencyGraph.put(name, new HashSet<>(Arrays.asList(dependencies)));
         pendingToEnable.add(name);
@@ -380,7 +396,8 @@ public class PluginManager implements IPluginManager {
      *
      * This method can be called after doing several loadPlugin(...) and loadPluginInstance(...) calls.
      */
-    public void enablePendingPlugins() {
+    @Override
+    public void enablePendingPlugins(ServiceProvider serviceProvider) {
         // Build a map of pluginName -> dependencies filtered to registered plugins
         Map<String, Set<String>> graph = new HashMap<>();
         for (String pluginName : loadedPlugins.keySet()) {
@@ -428,7 +445,7 @@ public class PluginManager implements IPluginManager {
             }
 
             try {
-                enablePlugin(metadata.getInstance());
+                enablePlugin(metadata.getInstance(), serviceProvider);
                 enabledPlugins.add(pluginName);
                 pendingToEnable.remove(pluginName);
                 // log.info("Enabled plugin: " + pluginName);
@@ -462,7 +479,7 @@ public class PluginManager implements IPluginManager {
                 }
 
                 try {
-                    enablePlugin(metadata.getInstance());
+                    enablePlugin(metadata.getInstance(), serviceProvider);
                     enabledPlugins.add(pluginName);
                     pendingToEnable.remove(pluginName);
                     progress = true;
@@ -512,11 +529,11 @@ public class PluginManager implements IPluginManager {
         result.add(node);
     }
 
-    private void enablePlugin(JavaPlugin pluginInstance) {
+    private void enablePlugin(JavaPlugin pluginInstance, ServiceProvider serviceProvider) {
         log.info("Loading plugin: {} {}", pluginInstance.getName(), pluginInstance.getVersion());
 
         try {
-            pluginInstance.inject(this.eventManager, this);
+            pluginInstance.inject(this.eventManager, this, serviceProvider);
         } catch (Exception ignored) { }
 
         pluginInstance.load();
