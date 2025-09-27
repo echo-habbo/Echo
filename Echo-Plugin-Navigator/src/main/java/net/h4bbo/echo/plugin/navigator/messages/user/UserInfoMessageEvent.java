@@ -4,9 +4,8 @@ import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
-import net.h4bbo.echo.storage.StorageContextFactory;
 import net.h4bbo.echo.codecs.PacketCodec;
-import net.h4bbo.echo.storage.models.user.User;
+import net.h4bbo.echo.storage.models.user.UserData;
 
 public class UserInfoMessageEvent extends MessageEvent {
     @Override
@@ -16,7 +15,7 @@ public class UserInfoMessageEvent extends MessageEvent {
 
     @Override
     public void handle(IPlayer player, IClientCodec msg) {
-        var user = player.attr(User.DATA_KEY).get();
+        var user = player.attr(UserData.DATA_KEY).get();
 
         PacketCodec.create(5)
                 .append(DataCodec.STRING, user.getId())

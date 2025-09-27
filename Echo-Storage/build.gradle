@@ -10,7 +10,7 @@ apply from: "../root.gradle"
 
 
 dependencies {
-    api 'com.github.lovepigeons:Entity4j:v1.0.13'
+    api 'com.github.lovepigeons:Entity4j:v1.0.15'
     api 'com.github.lovepigeons:SimpleLogger4j:v1.0.4'
 
     implementation 'org.xerial:sqlite-jdbc:3.50.3.0'

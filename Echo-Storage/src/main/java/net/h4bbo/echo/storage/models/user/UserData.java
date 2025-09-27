@@ -6,11 +6,14 @@ import org.oldskooler.entity4j.annotations.Column;
 import org.oldskooler.entity4j.annotations.Entity;
 import org.oldskooler.entity4j.annotations.Id;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 @Entity(table = "users")
 @ToString
 @EqualsAndHashCode
-public class User {
-    public static final AttributeKey<User> DATA_KEY = AttributeKey.valueOf("net.h4bbo.echo.storage.models.user.User");
+public class UserData {
+    public static final AttributeKey<UserData> DATA_KEY = AttributeKey.valueOf(UserData.class.getCanonicalName());
     @Getter
     @Id(auto = true)
     private int id;
@@ -47,7 +50,7 @@ public class User {
 
     @Getter
     @Setter
-    @Column(name = "birthday", nullable = false, defaultValue = "01.01.1970")
+    @Column(name = "birthday", nullable = false, defaultValue = "'01.01.1970'")
     private String birthday;
 
     @Getter
@@ -84,4 +87,9 @@ public class User {
     @Setter
     @Column(name = "direct_mail", nullable = false, defaultValue = "0")
     private boolean directMail;
+
+    @Getter
+    @Setter
+    @Column(name = "created_at", nullable = false, defaultValue = "(CURRENT_TIMESTAMP)")
+    private LocalDateTime createdAt;
 }

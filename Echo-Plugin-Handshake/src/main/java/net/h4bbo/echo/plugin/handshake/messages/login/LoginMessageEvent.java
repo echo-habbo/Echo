@@ -7,7 +7,7 @@ import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.storage.StorageContextFactory;
 import net.h4bbo.echo.codecs.PacketCodec;
-import net.h4bbo.echo.storage.models.user.User;
+import net.h4bbo.echo.storage.models.user.UserData;
 
 import java.sql.SQLException;
 
@@ -23,12 +23,12 @@ public class LoginMessageEvent extends MessageEvent {
         String password = msg.pop(DataCodec.STRING, String.class);
 
         try (var storage = StorageContextFactory.getStorage()) {
-            var user = storage.from(User.class)
+            var user = storage.from(UserData.class)
                     .filter(f ->
-                            f.equals(User::getName, username).equals(User::getPassword, password))
+                            f.equals(UserData::getName, username).equals(UserData::getPassword, password))
                     .first();
 
-            user.ifPresent(value -> player.attr(User.DATA_KEY).setIfAbsent(value));
+            user.ifPresent(value -> player.attr(UserData.DATA_KEY).setIfAbsent(value));
 
             boolean loginCancelled = user.isEmpty();
 
@@ -47,7 +47,7 @@ public class LoginMessageEvent extends MessageEvent {
         player.setAuthenticated(true);
 
         PacketCodec.create(139)
-                .append(DataCodec.BYTES, "Hello " + player.attr(User.DATA_KEY).get().getName())
+                .append(DataCodec.BYTES, "Hello " + player.attr(UserData.DATA_KEY).get().getName())
                         .send(player);
 
         PacketCodec.create(2)

@@ -1,5 +1,7 @@
 package net.h4bbo.echo.storage;
 
+import net.h4bbo.echo.storage.models.navigator.RoomData;
+import net.h4bbo.echo.storage.models.user.UserData;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.io.File;
@@ -12,7 +14,22 @@ public class StorageContextFactory {
     private static boolean isSeeded;
 
     public static StorageContext getStorage() throws SQLException {
-        return new StorageContext(TryGetConnection());
+        var ctx = new StorageContext(TryGetConnection());
+
+        if (!isSeeded) {
+            isSeeded = true;
+            StorageSeeder.init(ctx);
+        }
+
+        var t = ctx.from(RoomData.class).as("r")
+                .select(s -> s
+                        .all(RoomData.class)
+                        .col(UserData.class, UserData::getName).as("owner_name"))
+                .leftJoin(UserData.class, "u", on ->
+                        on.eq(RoomData::getOwnerId, UserData::getId));
+
+        System.out.println(t.toList());
+        return ctx;
     }
 
     private static Connection TryGetConnection() throws SQLException {

@@ -104,9 +104,10 @@ public class ClientCodec implements IClientCodec, AutoCloseable {
             if (getReadableBytes().length == 0)
                 return 0;
             byte[] bzData = this.getReadableBytes();
-            int totalBytes = WireEncoding.decodeInt32(bzData);
-            readBytesInternal(totalBytes);
-            return Integer.parseInt(new String(bzData));
+            int decoded = WireEncoding.decodeInt32(bzData);
+            int decodedLength = bzData[0] >> 3 & 7;
+            readBytesInternal(decodedLength);
+            return decoded;
         } catch (Exception e) {
             return 0;
         }

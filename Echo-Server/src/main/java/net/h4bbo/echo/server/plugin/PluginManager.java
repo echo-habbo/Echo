@@ -514,7 +514,11 @@ public class PluginManager implements IPluginManager {
 
     private void enablePlugin(JavaPlugin pluginInstance) {
         log.info("Loading plugin: {} {}", pluginInstance.getName(), pluginInstance.getVersion());
-        pluginInstance.inject(this.eventManager, this);
+
+        try {
+            pluginInstance.inject(this.eventManager, this);
+        } catch (Exception ignored) { }
+
         pluginInstance.load();
     }
 

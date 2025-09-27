@@ -10,14 +10,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 
 public class StorageContext extends DbContext {
-    private static boolean isSeeded = false;
-
     public StorageContext(Connection connection) throws SQLException {
         super(connection);
-
-        if (!isSeeded) {
-            isSeeded = true;
-            StorageSeeder.init(this);
-        }
     }
 }
