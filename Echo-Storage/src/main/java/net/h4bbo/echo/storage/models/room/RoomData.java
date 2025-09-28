@@ -1,4 +1,4 @@
-package net.h4bbo.echo.storage.models.navigator;
+package net.h4bbo.echo.storage.models.room;
 
 import io.netty.util.AttributeKey;
 import lombok.EqualsAndHashCode;

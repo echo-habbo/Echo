@@ -1,7 +1,5 @@
 package net.h4bbo.echo.storage;
 
-import net.h4bbo.echo.storage.models.navigator.RoomData;
-import net.h4bbo.echo.storage.models.user.UserData;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.io.File;

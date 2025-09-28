@@ -1,4 +1,4 @@
-package net.h4bbo.echo.server.game.player;
+package net.h4bbo.echo.server.player;
 
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;

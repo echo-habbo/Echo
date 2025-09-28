@@ -5,6 +5,8 @@ import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.MessageEvent;
 import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
+import net.h4bbo.echo.api.services.user.IUserService;
+import net.h4bbo.echo.plugin.handshake.HandshakePlugin;
 import net.h4bbo.echo.storage.StorageContextFactory;
 import net.h4bbo.echo.codecs.PacketCodec;
 import net.h4bbo.echo.storage.models.user.UserData;
@@ -18,30 +20,26 @@ public class LoginMessageEvent extends MessageEvent {
     }
 
     @Override
-    public void handle(IPlayer player, IClientCodec msg) throws SQLException {
+    public void handle(IPlayer player, IClientCodec msg) {
         String username = msg.pop(DataCodec.STRING, String.class);
         String password = msg.pop(DataCodec.STRING, String.class);
 
-        try (var storage = StorageContextFactory.getStorage()) {
-            var user = storage.from(UserData.class)
-                    .filter(f ->
-                            f.equals(UserData::getName, username).equals(UserData::getPassword, password))
-                    .first();
+        var plugin = (HandshakePlugin) this.getPlugin();
+        var userOpt = plugin.getUserAuthenticate(username, password);
 
-            user.ifPresent(value -> player.attr(UserData.DATA_KEY).setIfAbsent(value));
+        userOpt.ifPresent(value -> player.attr(UserData.DATA_KEY).setIfAbsent(value));
 
-            boolean loginCancelled = user.isEmpty();
+        boolean loginCancelled = userOpt.isEmpty();
 
-            if (!loginCancelled) {
-                loginCancelled = this.getEventManager().publish(new PlayerLoginEvent(player));
-            }
+        if (!loginCancelled) {
+            loginCancelled = this.getEventManager().publish(new PlayerLoginEvent(player));
+        }
 
-            if (loginCancelled) {
-                PacketCodec.create(33)
-                        .append(DataCodec.BYTES, "Login incorrect")
-                        .send(player);
-                return;
-            }
+        if (loginCancelled) {
+            PacketCodec.create(33)
+                    .append(DataCodec.BYTES, "Login incorrect")
+                    .send(player);
+            return;
         }
 
         player.setAuthenticated(true);

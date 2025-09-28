@@ -3,6 +3,8 @@ package net.h4bbo.echo.plugin.room;
 import net.h4bbo.echo.api.plugin.DependsOn;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
 import net.h4bbo.echo.api.services.navigator.INavigatorService;
+import net.h4bbo.echo.api.services.room.IRoomService;
+import net.h4bbo.echo.plugin.room.services.RoomService;
 import org.oldskooler.inject4j.ServiceCollection;
 
 @DependsOn({"HandshakePlugin"})
@@ -11,7 +13,7 @@ public class RoomPlugin extends JavaPlugin {
 
     @Override
     public void assignServices(ServiceCollection services) {
-
+        services.addSingleton(IRoomService.class, RoomService.class);
     }
 
     @Override
@@ -27,15 +29,4 @@ public class RoomPlugin extends JavaPlugin {
     public RoomManager getRoomManager() {
         return roomManager;
     }
-
-    /*
-    @EventHandler
-    public void onPlayerLoginEvent(PlayerLoginEvent event) {
-
-    }
-
-    @EventHandler
-    public void onPlayerDisconnectEvent(PlayerDisconnectEvent event) {
-        this.getLogger().info("{} has disconnected!", event.getPlayer());
-    }*/
 }

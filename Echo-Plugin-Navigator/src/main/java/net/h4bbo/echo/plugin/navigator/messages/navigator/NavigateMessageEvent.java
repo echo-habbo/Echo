@@ -6,8 +6,7 @@ import net.h4bbo.echo.api.network.codecs.DataCodec;
 import net.h4bbo.echo.api.network.codecs.IClientCodec;
 import net.h4bbo.echo.codecs.PacketCodec;
 import net.h4bbo.echo.plugin.navigator.NavigatorPlugin;
-import net.h4bbo.echo.storage.StorageContextFactory;
-import net.h4bbo.echo.storage.models.navigator.RoomData;
+import net.h4bbo.echo.storage.models.room.RoomData;
 import net.h4bbo.echo.storage.models.user.UserData;
 
 import java.sql.SQLException;
@@ -21,14 +20,14 @@ public class NavigateMessageEvent extends MessageEvent {
     }
 
     @Override
-    public void handle(IPlayer player, IClientCodec msg) throws SQLException {
+    public void handle(IPlayer player, IClientCodec msg) {
         var playerData = player.attr(UserData.DATA_KEY).get();
-        var navigatorPlugin = (NavigatorPlugin) this.getPlugin();
+        var plugin = (NavigatorPlugin) this.getPlugin();
 
         boolean hideFulLRooms = msg.pop(DataCodec.BOOL, Boolean.class);
         int categoryId = msg.pop(DataCodec.VL64_INT, Integer.class);
 
-        var navigatorCategoryOpt = navigatorPlugin.getNavigatorCategories().stream()
+        var navigatorCategoryOpt = plugin.getNavigatorCategories().stream()
                 .filter(x -> x.getId() == categoryId)
                 .findFirst();
 
@@ -42,22 +41,8 @@ public class NavigateMessageEvent extends MessageEvent {
             return;
         }
 
-        List<RoomData> roomList = new ArrayList<>();
-
-        try (var ctx = StorageContextFactory.getStorage()) {
-            roomList = ctx.from(RoomData.class).as("r")
-                    .select(s -> s
-                            .all(RoomData.class)
-                            .col(UserData.class, UserData::getName).as("owner_name"))
-                    .leftJoin(UserData.class, "u", on ->
-                            on.eq(RoomData::getOwnerId, UserData::getId))
-                    .filter(x -> x.equals(RoomData::getCategoryId, categoryId))
-                    .toList();
-        } catch (SQLException e) {
-            this.getLogger().error("Error loading navigator categories: ", e);
-        }
-
-        var isPublicRoomCategory = navigatorPlugin.isPublicRoomCategory(navigatorCategory);
+        List<RoomData> roomList = plugin.getRoomsByCategory(navigatorCategory.getId());
+        var isPublicRoomCategory = plugin.isPublicRoomCategory(navigatorCategory.getId());
 
         var codec = PacketCodec.create(220)
                 .append(DataCodec.BOOL, hideFulLRooms)
@@ -108,7 +93,7 @@ public class NavigateMessageEvent extends MessageEvent {
             }
         }
 
-        var subCategories = navigatorPlugin.getNavigatorCategories().stream()
+        var subCategories = plugin.getNavigatorCategories().stream()
                 .filter(x -> x.getParentId() == navigatorCategory.getId() &&
                         playerData.getRank() >= x.getRankId())
                 .toList();

@@ -32,7 +32,7 @@ public abstract class MessageEvent {
 
     public abstract int getHeaderId();
 
-    public abstract void handle(IPlayer player, IClientCodec msg) throws SQLException;
+    public abstract void handle(IPlayer player, IClientCodec msg);
 
     public JavaPlugin getPlugin() {
         return plugin;

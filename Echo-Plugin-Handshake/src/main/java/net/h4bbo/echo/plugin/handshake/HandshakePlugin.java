@@ -7,11 +7,17 @@ import net.h4bbo.echo.api.event.types.client.*;
 import net.h4bbo.echo.api.network.codecs.ProtocolCodec;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
 import net.h4bbo.echo.api.services.navigator.INavigatorService;
+import net.h4bbo.echo.api.services.user.IUserService;
 import net.h4bbo.echo.plugin.handshake.encryption.RC4Holder;
 import net.h4bbo.echo.plugin.handshake.messages.handshake.InitCryptoMessageEvent;
+import net.h4bbo.echo.plugin.handshake.services.UserService;
+import net.h4bbo.echo.storage.StorageContextFactory;
+import net.h4bbo.echo.storage.models.user.UserData;
 import org.oldskooler.inject4j.ServiceCollection;
 
+import java.sql.SQLException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HandshakePlugin extends JavaPlugin {
@@ -20,7 +26,7 @@ public class HandshakePlugin extends JavaPlugin {
 
     @Override
     public void assignServices(ServiceCollection services) {
-
+        services.addSingleton(IUserService.class, UserService.class);
     }
 
     @Override
@@ -74,6 +80,11 @@ public class HandshakePlugin extends JavaPlugin {
 
         buffer.writeBytes(deciphered);
         event.setBuffer(buffer);
+    }
+
+    public Optional<UserData> getUserAuthenticate(String username, String password) {
+        return getServices().getRequiredService(IUserService.class)
+                .getUserAuthenticate(username, password);
     }
 
     public Map<ChannelId, RC4Holder> getEncryptionHolders() {

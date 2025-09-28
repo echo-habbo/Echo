@@ -7,7 +7,7 @@ import net.h4bbo.echo.api.messages.IMessageHandler;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.network.session.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
-import net.h4bbo.echo.server.game.player.Player;
+import net.h4bbo.echo.server.player.Player;
 import net.h4bbo.echo.api.messages.MessageHandler;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
