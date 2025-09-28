@@ -10,3 +10,6 @@
 [submodule "Echo-Module-Room"]
 	path = Echo-Module-Room
 	url = https://github.com/prjEcho/Echo-Module-Room
+[submodule "Echo-Storage"]
+	path = Echo-Storage
+	url = https://github.com/prjEcho/Echo-Storage
