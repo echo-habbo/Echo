@@ -2,7 +2,6 @@ package net.h4bbo.echo.server.plugin;
 
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.*;
-import net.h4bbo.echo.plugin.navigator.NavigatorPlugin;
 import org.oldskooler.inject4j.ServiceCollection;
 import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.simplelogger4j.SimpleLog;
@@ -13,7 +12,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 

@@ -12,7 +12,7 @@ dependencies {
     implementation project (":Echo-API")
 
     // Import all subprojects starting with "Echo-Plugin"
-    rootProject.subprojects.findAll { it.name.startsWith("Echo-Plugin") }.each { plugin ->
+    rootProject.subprojects.findAll { it.name.startsWith("Echo-Module") }.each { plugin ->
         implementation project(":${plugin.name}")
     }
 }
