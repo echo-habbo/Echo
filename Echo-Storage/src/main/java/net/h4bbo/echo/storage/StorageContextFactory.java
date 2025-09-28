@@ -50,6 +50,6 @@ public class StorageContextFactory {
             }
         }
 
-        return DriverManager.getConnection("jdbc:sqlite:echo-server.db");
+        return DriverManager.getConnection("jdbc:mysql://localhost/test?user=root&password=verysecret");
     }
 }

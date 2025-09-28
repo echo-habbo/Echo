@@ -19,6 +19,8 @@ public class StorageSeeder {
     }
 
     private static void seedRooms(StorageContext storageContext) {
+        storageContext.dropTableIfExists(RoomData.class);
+
         long roomCount = 0;
 
         try {
@@ -84,6 +86,7 @@ public class StorageSeeder {
     }
 
     private static void seedNavigatorCategories(StorageContext storageContext) {
+        storageContext.dropTableIfExists(NavigatorCategoryData.class);
         long categoryCount = 0;
 
         try {
@@ -134,6 +137,7 @@ public class StorageSeeder {
     }
 
     private static void seedUsers(StorageContext storageContext) {
+        storageContext.dropTableIfExists(UserData.class);
         long userCount = 0;
 
         try {

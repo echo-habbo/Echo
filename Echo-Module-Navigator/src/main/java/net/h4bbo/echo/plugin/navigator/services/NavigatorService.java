@@ -1,6 +1,7 @@
-package net.h4bbo.echo.plugin.navigator;
+package net.h4bbo.echo.plugin.navigator.services;
 
 import net.h4bbo.echo.api.services.navigator.INavigatorService;
+import net.h4bbo.echo.plugin.navigator.NavigatorPlugin;
 import net.h4bbo.echo.storage.StorageContextFactory;
 import net.h4bbo.echo.storage.models.navigator.NavigatorCategoryData;
 

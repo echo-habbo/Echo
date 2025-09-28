@@ -10,12 +10,16 @@ apply from: "../root.gradle"
 
 
 dependencies {
-    api 'com.github.lovepigeons:Entity4j:v1.0.15'
+    api 'com.github.lovepigeons:Entity4j:v1.0.16'
     api 'com.github.lovepigeons:SimpleLogger4j:v1.0.4'
 
     implementation 'org.xerial:sqlite-jdbc:3.50.3.0'
 
     // https://mvnrepository.com/artifact/io.netty/netty-all
     implementation ("io.netty:netty-all:4.2.6.Final")
+
+    // Used for testing cross-compatibility
+    // https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
+    // implementation("com.mysql:mysql-connector-j:8.0.31")
 
 }
