@@ -4,3 +4,9 @@
 [submodule "Echo-Module-Navigator"]
 	path = Echo-Module-Navigator
 	url = https://github.com/prjEcho/Echo-Module-Navigator
+[submodule "Echo-API"]
+	path = Echo-API
+	url = https://github.com/prjEcho/Echo-API
+[submodule "Echo-Module-Room"]
+	path = Echo-Module-Room
+	url = https://github.com/prjEcho/Echo-Module-Room
