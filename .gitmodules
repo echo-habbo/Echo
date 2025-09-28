@@ -1,0 +1,3 @@
+[submodule "Echo-Module-Handshake"]
+	path = Echo-Module-Handshake
+	url = https://github.com/prjEcho/Echo-Module-Handshake
