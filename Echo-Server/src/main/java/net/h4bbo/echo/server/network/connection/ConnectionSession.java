@@ -1,14 +1,15 @@
-package net.h4bbo.echo.server.network.session;
+package net.h4bbo.echo.server.network.connection;
 
 import io.netty.channel.Channel;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.messages.IMessageHandler;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
-import net.h4bbo.echo.api.network.session.IConnectionSession;
+import net.h4bbo.echo.api.network.connection.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.server.player.Player;
 import net.h4bbo.echo.api.messages.MessageHandler;
+import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 import java.net.InetSocketAddress;
@@ -20,12 +21,12 @@ public class ConnectionSession implements IConnectionSession {
     private boolean IsDisconnected = false;
     private final IMessageHandler messageHandler;
 
-    public ConnectionSession(Channel channel, IEventManager eventManager, IPluginManager pluginManager) {
+    public ConnectionSession(Channel channel, IEventManager eventManager, IPluginManager pluginManager, ServiceProvider serviceProvider) {
         if (channel == null) throw new IllegalArgumentException("channel cannot be null");
         this.channel = channel;
         this.player = new Player(this);
         this.log = SimpleLog.of(ConnectionSession.class);
-        this.messageHandler = new MessageHandler(this, eventManager, pluginManager);
+        this.messageHandler = new MessageHandler(this, eventManager, pluginManager, serviceProvider);
     }
 
     @Override

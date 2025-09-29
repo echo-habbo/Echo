@@ -2,15 +2,12 @@ package net.h4bbo.echo.server.player;
 
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import net.h4bbo.echo.api.commands.CommandSender;
 import net.h4bbo.echo.api.event.types.player.PlayerDisconnectEvent;
-import net.h4bbo.echo.api.event.types.player.PlayerLoginEvent;
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
-import net.h4bbo.echo.api.network.session.IConnectionSend;
-import net.h4bbo.echo.api.network.session.IConnectionSession;
+import net.h4bbo.echo.api.network.connection.IConnectionSession;
 import net.h4bbo.echo.server.Echo;
-import net.h4bbo.echo.server.network.session.ConnectionSession;
+import net.h4bbo.echo.server.network.connection.ConnectionSession;
 
 import java.util.concurrent.CompletableFuture;
 

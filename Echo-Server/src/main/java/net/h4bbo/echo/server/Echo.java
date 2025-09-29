@@ -1,11 +1,12 @@
 package net.h4bbo.echo.server;
 
 import net.h4bbo.echo.api.event.IEventManager;
+import net.h4bbo.echo.api.network.connection.IConnectionManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.server.plugin.PluginLoader;
 import net.h4bbo.echo.server.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
-import net.h4bbo.echo.server.network.session.ConnectionManager;
+import net.h4bbo.echo.server.network.connection.ConnectionManager;
 import net.h4bbo.echo.server.plugin.PluginManager;
 import net.h4bbo.echo.storage.StorageContextFactory;
 import org.oldskooler.inject4j.ServiceCollection;
@@ -37,7 +38,6 @@ public class Echo {
         configuration = new Properties();
         eventManager = new EventManager();
         pluginManager = new PluginManager("plugins", eventManager);
-        connectionManager = new ConnectionManager(eventManager, pluginManager);
         pluginLoader = new PluginLoader(eventManager, pluginManager);
     }
 
@@ -115,9 +115,8 @@ public class Echo {
 
     private static boolean tryConfigureServices() {
         try {
-            // Register pluginManager and eventManager
-            // You would usually use a DI container, here just placeholders
-
+            serviceCollection.addSingleton(IPluginManager.class, () -> pluginManager);
+            serviceCollection.addSingleton(IEventManager.class, () -> eventManager);
 
             log.info("Loading all system plugins");
             pluginLoader.findAndLoadAllJavaPlugins(serviceCollection);
@@ -125,10 +124,13 @@ public class Echo {
             log.info("Loading all custom plugins");
             pluginManager.loadAllPlugins(serviceCollection);
 
+            connectionManager = new ConnectionManager(eventManager, pluginManager, serviceProvider);
+            serviceCollection.addSingleton(IConnectionManager.class, () -> connectionManager);
+
             serviceProvider = serviceCollection.buildServiceProvider();
             pluginManager.enablePendingPlugins(serviceProvider);
-
             log.success("Loaded {} plugins", pluginManager.getAllPlugins().size());
+
             return true;
         } catch (Exception ex) {
             log.error("An exception occurred while configuring services: " + ex.getMessage(), ex);
@@ -149,7 +151,7 @@ public class Echo {
         String host = configuration.getProperty("server.host", "0.0.0.0");
         int port = Integer.parseInt(configuration.getProperty("server.port", "30001"));
 
-        server = new GameServer(host, port, eventManager, pluginManager);
+        server = new GameServer(host, port, eventManager, pluginManager, serviceProvider);
         server.createSocket();
 
         try {

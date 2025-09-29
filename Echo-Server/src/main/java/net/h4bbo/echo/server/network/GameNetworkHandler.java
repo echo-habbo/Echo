@@ -7,28 +7,32 @@ import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.event.types.client.ClientConnectedEvent;
 import net.h4bbo.echo.api.event.types.client.ClientDisconnectedEvent;
 import net.h4bbo.echo.api.event.types.client.ConnectionMessageEvent;
-import net.h4bbo.echo.api.network.session.IConnectionSession;
+import net.h4bbo.echo.api.network.connection.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
 import net.h4bbo.echo.codecs.ClientCodec;
 import net.h4bbo.echo.codecs.PacketCodec;
-import net.h4bbo.echo.server.network.session.ConnectionSession;
+import net.h4bbo.echo.server.network.connection.ConnectionSession;
+import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
 public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec> {
     public static final SimpleLog log = SimpleLog.of(GameNetworkHandler.class);
     public static final AttributeKey<IConnectionSession> CONNECTION_KEY = AttributeKey.newInstance("CONNECTION_KEY");
+
     private final IEventManager eventManager;
     private final IPluginManager pluginManager;
+    private final ServiceProvider serviceProvider;
 
-    public GameNetworkHandler(IEventManager eventManager, IPluginManager pluginManager) {
+    public GameNetworkHandler(IEventManager eventManager, IPluginManager pluginManager, ServiceProvider serviceProvider) {
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
+        this.serviceProvider = serviceProvider;
     }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) {
-        var connection = new ConnectionSession(ctx.channel(), this.eventManager, this.pluginManager);
+        var connection = new ConnectionSession(ctx.channel(), this.eventManager, this.pluginManager, this.serviceProvider);
 
         ctx.channel().attr(CONNECTION_KEY).setIfAbsent(connection);
 
