@@ -38,6 +38,7 @@ public class Echo {
         configuration = new Properties();
         eventManager = new EventManager();
         pluginManager = new PluginManager("plugins", eventManager);
+        connectionManager = new ConnectionManager();
         pluginLoader = new PluginLoader(eventManager, pluginManager);
     }
 
@@ -117,15 +118,13 @@ public class Echo {
         try {
             serviceCollection.addSingleton(IPluginManager.class, () -> pluginManager);
             serviceCollection.addSingleton(IEventManager.class, () -> eventManager);
+            serviceCollection.addSingleton(IConnectionManager.class, () -> connectionManager);
 
             log.info("Loading all system plugins");
             pluginLoader.findAndLoadAllJavaPlugins(serviceCollection);
 
             log.info("Loading all custom plugins");
             pluginManager.loadAllPlugins(serviceCollection);
-
-            connectionManager = new ConnectionManager(eventManager, pluginManager, serviceProvider);
-            serviceCollection.addSingleton(IConnectionManager.class, () -> connectionManager);
 
             serviceProvider = serviceCollection.buildServiceProvider();
             pluginManager.enablePendingPlugins(serviceProvider);
@@ -151,7 +150,7 @@ public class Echo {
         String host = configuration.getProperty("server.host", "0.0.0.0");
         int port = Integer.parseInt(configuration.getProperty("server.port", "30001"));
 
-        server = new GameServer(host, port, eventManager, pluginManager, serviceProvider);
+        server = new GameServer(host, port, eventManager, pluginManager, connectionManager, serviceProvider);
         server.createSocket();
 
         try {

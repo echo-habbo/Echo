@@ -7,6 +7,7 @@ import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.event.types.client.ClientConnectedEvent;
 import net.h4bbo.echo.api.event.types.client.ClientDisconnectedEvent;
 import net.h4bbo.echo.api.event.types.client.ConnectionMessageEvent;
+import net.h4bbo.echo.api.network.connection.IConnectionManager;
 import net.h4bbo.echo.api.network.connection.IConnectionSession;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.common.messages.headers.OutgoingEvents;
@@ -22,17 +23,21 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
 
     private final IEventManager eventManager;
     private final IPluginManager pluginManager;
+    private final IConnectionManager connectionManager;
     private final ServiceProvider serviceProvider;
 
-    public GameNetworkHandler(IEventManager eventManager, IPluginManager pluginManager, ServiceProvider serviceProvider) {
+    public GameNetworkHandler(IEventManager eventManager, IPluginManager pluginManager, IConnectionManager connectionManager, ServiceProvider serviceProvider) {
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
+        this.connectionManager = connectionManager;
         this.serviceProvider = serviceProvider;
     }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) {
         var connection = new ConnectionSession(ctx.channel(), this.eventManager, this.pluginManager, this.serviceProvider);
+
+        this.connectionManager.addConnection(connection);
 
         ctx.channel().attr(CONNECTION_KEY).setIfAbsent(connection);
 
@@ -52,6 +57,8 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
         var connection = ctx.channel().attr(CONNECTION_KEY).get();
+
+        this.connectionManager.removeConnection(connection);
 
         var isCancelled = this.eventManager.publish(new ClientDisconnectedEvent(connection));
 

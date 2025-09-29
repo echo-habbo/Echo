@@ -1,57 +1,42 @@
 package net.h4bbo.echo.server.network.connection;
 
 import io.netty.channel.Channel;
-import net.h4bbo.echo.api.event.IEventManager;
+import io.netty.channel.ChannelId;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.network.connection.IConnectionManager;
 import net.h4bbo.echo.api.network.connection.IConnectionSession;
-import net.h4bbo.echo.api.plugin.IPluginManager;
-import org.oldskooler.inject4j.ServiceProvider;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager implements IConnectionManager {
     private static ConnectionManager instance;
-    private final ConcurrentHashMap<Channel, IConnectionSession> connections;
+    private final ConcurrentHashMap<ChannelId, IConnectionSession> connections;
 
-    private final IEventManager eventManager;
-    private final IPluginManager pluginManager;
-    private final ServiceProvider serviceProvider;
-
-    public ConnectionManager(IEventManager eventManager, IPluginManager pluginManager, ServiceProvider serviceProvider) {
-        this.eventManager = eventManager;
-        this.pluginManager = pluginManager;
-        this.serviceProvider = serviceProvider;
+    public ConnectionManager() {
         this.connections = new ConcurrentHashMap<>();
     }
 
     @Override
-    public void addConnection(Channel channel) {
-        if (channel == null) {
-            throw new IllegalArgumentException("Channel must not be null");
-        }
-
-        connections.put(channel, new ConnectionSession(channel, this.eventManager, this.pluginManager, this.serviceProvider));
+    public void addConnection(IConnectionSession session) {
+        this.connections.putIfAbsent(session.getChannel().id(), session);
     }
 
     @Override
-    public void removeConnection(Channel channel) {
-        if (channel == null) {
-            throw new IllegalArgumentException("Channel must not be null");
-        }
-
-         connections.remove(channel);
+    public void removeConnection(IConnectionSession session) {
+        this.connections.remove(session.getChannel().id());
     }
 
     @Override
     public IConnectionSession getConnection(Channel channel) {
-        if (channel == null) {
-            throw new IllegalArgumentException("Channel must not be null");
-        }
+        return this.connections.get(channel.id());
+    }
 
-        connections.get(channel);
-
-        return connections.getOrDefault(channel, null);
+    @Override
+    public List<IConnectionSession> getConnections() {
+        return this.connections.values().stream().toList();
     }
 
     @Override
