@@ -9,9 +9,11 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import net.h4bbo.echo.api.IAdvancedScheduler;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.network.connection.IConnectionManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
+import net.h4bbo.echo.server.scheduler.AdvancedScheduler;
 import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
@@ -39,12 +41,14 @@ public class GameServer  {
     private final IEventManager eventManager;
     private final IPluginManager pluginManager;
     private final IConnectionManager connectionManager;
+    private final IAdvancedScheduler advancedScheduler;
     private final ServiceProvider serviceProvider;
 
-    public GameServer(String ip, int port, IEventManager eventManager, IPluginManager pluginManager, IConnectionManager connectionManager, ServiceProvider serviceProvider) {
+    public GameServer(String ip, int port, IEventManager eventManager, IPluginManager pluginManager, IConnectionManager connectionManager, AdvancedScheduler advancedScheduler, ServiceProvider serviceProvider) {
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
         this.connectionManager = connectionManager;
+        this.advancedScheduler = advancedScheduler;
         this.serviceProvider = serviceProvider;
         this.ip = ip;
         this.port = port;
@@ -65,7 +69,7 @@ public class GameServer  {
 
         this.bootstrap.group(bossGroup, workerGroup)
                 .channel((Epoll.isAvailable()) ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-                .childHandler(new GameChannelInitializer(this.eventManager, this.pluginManager, this.connectionManager, this.serviceProvider))
+                .childHandler(new GameChannelInitializer(this.eventManager, this.pluginManager, this.connectionManager, this.advancedScheduler, this.serviceProvider))
                 .option(ChannelOption.SO_BACKLOG, BACK_LOG)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)

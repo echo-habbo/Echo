@@ -1,5 +1,6 @@
 package net.h4bbo.echo.server.plugin;
 
+import net.h4bbo.echo.api.IAdvancedScheduler;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.*;
 import org.oldskooler.inject4j.ServiceCollection;
@@ -23,11 +24,14 @@ public class PluginManager implements IPluginManager {
     private final Map<String, Set<String>> dependencyGraph = new ConcurrentHashMap<>();
     private final List<String> pendingToEnable = new CopyOnWriteArrayList<>();
     private final List<String> enabledPlugins = new CopyOnWriteArrayList<>();
-    private final IEventManager eventManager;
 
-    public PluginManager(String pluginDirectory, IEventManager eventManager) {
+    private final IEventManager eventManager;
+    private final IAdvancedScheduler advancedScheduler;
+
+    public PluginManager(String pluginDirectory, IEventManager eventManager, IAdvancedScheduler advancedScheduler) {
         this.pluginDirectory = pluginDirectory;
         this.eventManager = eventManager;
+        this.advancedScheduler = advancedScheduler;
     }
 
     /**
@@ -531,7 +535,7 @@ public class PluginManager implements IPluginManager {
         log.info("Loading plugin: {} {}", pluginInstance.getName(), pluginInstance.getVersion());
 
         try {
-            pluginInstance.inject(this.eventManager, this, serviceProvider);
+            pluginInstance.inject(this.eventManager, this, this.advancedScheduler, serviceProvider);
         } catch (Exception ignored) { }
 
         pluginInstance.load();

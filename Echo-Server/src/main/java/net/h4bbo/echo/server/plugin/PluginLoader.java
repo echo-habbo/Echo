@@ -1,8 +1,10 @@
 package net.h4bbo.echo.server.plugin;
 
+import net.h4bbo.echo.api.IAdvancedScheduler;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
 import net.h4bbo.echo.api.plugin.JavaPlugin;
+import net.h4bbo.echo.server.scheduler.AdvancedScheduler;
 import org.oldskooler.inject4j.ServiceCollection;
 import org.oldskooler.simplelogger4j.SimpleLog;
 
@@ -19,11 +21,12 @@ import java.util.jar.JarFile;
 public class PluginLoader {
     private final IEventManager eventManager;
     private final IPluginManager pluginManager;
+    private final IAdvancedScheduler advancedScheduler;
 
-    public PluginLoader(IEventManager eventManager, IPluginManager pluginManager) {
+    public PluginLoader(IEventManager eventManager, IPluginManager pluginManager, AdvancedScheduler advancedScheduler) {
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
-
+        this.advancedScheduler = advancedScheduler;
     }
 
     public ArrayList<JavaPlugin> findAndLoadAllJavaPlugins(ServiceCollection serviceCollection) {

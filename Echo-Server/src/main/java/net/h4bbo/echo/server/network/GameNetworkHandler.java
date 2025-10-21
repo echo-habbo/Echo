@@ -3,6 +3,7 @@ package net.h4bbo.echo.server.network;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
+import net.h4bbo.echo.api.IAdvancedScheduler;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.event.types.client.ClientConnectedEvent;
 import net.h4bbo.echo.api.event.types.client.ClientDisconnectedEvent;
@@ -24,12 +25,14 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
     private final IEventManager eventManager;
     private final IPluginManager pluginManager;
     private final IConnectionManager connectionManager;
+    private final IAdvancedScheduler advancedScheduler;
     private final ServiceProvider serviceProvider;
 
-    public GameNetworkHandler(IEventManager eventManager, IPluginManager pluginManager, IConnectionManager connectionManager, ServiceProvider serviceProvider) {
+    public GameNetworkHandler(IEventManager eventManager, IPluginManager pluginManager, IConnectionManager connectionManager, IAdvancedScheduler advancedScheduler, ServiceProvider serviceProvider) {
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
         this.connectionManager = connectionManager;
+        this.advancedScheduler = advancedScheduler;
         this.serviceProvider = serviceProvider;
     }
 
@@ -56,23 +59,23 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-        var connection = ctx.channel().attr(CONNECTION_KEY).get();
+            var connection = ctx.channel().attr(CONNECTION_KEY).get();
 
-        this.connectionManager.removeConnection(connection);
+            this.connectionManager.removeConnection(connection);
 
-        var isCancelled = this.eventManager.publish(new ClientDisconnectedEvent(connection));
+            var isCancelled = this.eventManager.publish(new ClientDisconnectedEvent(connection));
 
-        if (isCancelled) {
-            return;
-        }
+            if (isCancelled) {
+                return;
+            }
 
-        try {
-            connection.getPlayer().disconnect();
-        } catch (Exception ex) {
-            log.info("Exception when disconnected from server: {}", connection.getIpAddress(), ex);
-        } finally {
-            log.info("Client disconnected from server: {}", connection.getIpAddress());
-        }
+            try {
+                connection.getPlayer().disconnect();
+            } catch (Exception ex) {
+                log.info("Exception when disconnected from server: {}", connection.getIpAddress(), ex);
+            } finally {
+                log.info("Client disconnected from server: {}", connection.getIpAddress());
+            }
     }
 
     @Override
@@ -85,6 +88,8 @@ public class GameNetworkHandler extends SimpleChannelInboundHandler<ClientCodec>
             return;
         }
 
-        connection.getMessageHandler().handleMessage(msg);
+        this.advancedScheduler.schedule(() -> {
+            connection.getMessageHandler().handleMessage(msg);
+        });
     }
 }

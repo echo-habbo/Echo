@@ -3,6 +3,7 @@ package net.h4bbo.echo.server.player;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import net.h4bbo.echo.api.event.types.player.PlayerDisconnectEvent;
+import net.h4bbo.echo.api.game.entity.EntityType;
 import net.h4bbo.echo.api.game.player.IPlayer;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.network.connection.IConnectionSession;
@@ -57,5 +58,10 @@ public class Player implements IPlayer {
     @Override
     public <T> boolean hasAttr(AttributeKey<T> key) {
         return this.connection.getChannel().hasAttr(key);
+    }
+
+    @Override
+    public EntityType getType() {
+        return EntityType.PLAYER;
     }
 }

@@ -1,5 +1,6 @@
 package net.h4bbo.echo.server;
 
+import net.h4bbo.echo.api.IAdvancedScheduler;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.network.connection.IConnectionManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
@@ -8,6 +9,7 @@ import net.h4bbo.echo.server.events.EventManager;
 import net.h4bbo.echo.server.network.GameServer;
 import net.h4bbo.echo.server.network.connection.ConnectionManager;
 import net.h4bbo.echo.server.plugin.PluginManager;
+import net.h4bbo.echo.server.scheduler.AdvancedScheduler;
 import net.h4bbo.echo.storage.StorageContextFactory;
 import org.oldskooler.inject4j.ServiceCollection;
 import org.oldskooler.inject4j.ServiceProvider;
@@ -26,6 +28,7 @@ public class Echo {
     public static PluginLoader pluginLoader;
     public static ConnectionManager connectionManager;
     public static GameServer server;
+    public static AdvancedScheduler advancedScheduler;
 
     private static final SimpleLog log;
 
@@ -34,12 +37,13 @@ public class Echo {
 
     static {
         log = SimpleLog.of(Echo.class);
+        advancedScheduler = new AdvancedScheduler(Runtime.getRuntime().availableProcessors());
         serviceCollection = new ServiceCollection();
         configuration = new Properties();
         eventManager = new EventManager();
-        pluginManager = new PluginManager("plugins", eventManager);
+        pluginManager = new PluginManager("plugins", eventManager, advancedScheduler);
         connectionManager = new ConnectionManager();
-        pluginLoader = new PluginLoader(eventManager, pluginManager);
+        pluginLoader = new PluginLoader(eventManager, pluginManager, advancedScheduler);
     }
 
     public static void boot() {
@@ -119,6 +123,7 @@ public class Echo {
             serviceCollection.addSingleton(IPluginManager.class, () -> pluginManager);
             serviceCollection.addSingleton(IEventManager.class, () -> eventManager);
             serviceCollection.addSingleton(IConnectionManager.class, () -> connectionManager);
+            serviceCollection.addSingleton(IAdvancedScheduler.class, () -> advancedScheduler);
 
             log.info("Loading all system plugins");
             pluginLoader.findAndLoadAllJavaPlugins(serviceCollection);
@@ -150,7 +155,7 @@ public class Echo {
         String host = configuration.getProperty("server.host", "0.0.0.0");
         int port = Integer.parseInt(configuration.getProperty("server.port", "30001"));
 
-        server = new GameServer(host, port, eventManager, pluginManager, connectionManager, serviceProvider);
+        server = new GameServer(host, port, eventManager, pluginManager, connectionManager, advancedScheduler, serviceProvider);
         server.createSocket();
 
         try {

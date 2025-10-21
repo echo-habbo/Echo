@@ -3,6 +3,7 @@ package net.h4bbo.echo.server.network;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import net.h4bbo.echo.api.IAdvancedScheduler;
 import net.h4bbo.echo.api.event.IEventManager;
 import net.h4bbo.echo.api.network.connection.IConnectionManager;
 import net.h4bbo.echo.api.plugin.IPluginManager;
@@ -14,12 +15,14 @@ public class GameChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final IEventManager eventManager;
     private final IPluginManager pluginManager;
     private final ServiceProvider serviceProvider;
+    private final IAdvancedScheduler advancedScheduler;
     private final IConnectionManager connectionManager;
 
-    public GameChannelInitializer(IEventManager eventManager, IPluginManager pluginManager, IConnectionManager connectionManager, ServiceProvider serviceProvider) {
+    public GameChannelInitializer(IEventManager eventManager, IPluginManager pluginManager, IConnectionManager connectionManager, IAdvancedScheduler advancedScheduler, ServiceProvider serviceProvider) {
         this.eventManager = eventManager;
         this.pluginManager = pluginManager;
         this.connectionManager = connectionManager;
+        this.advancedScheduler = advancedScheduler;
         this.serviceProvider = serviceProvider;
 
     }
@@ -29,6 +32,6 @@ public class GameChannelInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = channel.pipeline();
         pipeline.addLast("gameEncoder", new NetworkEncoder(this.eventManager, this.pluginManager));
         pipeline.addLast("gameDecoder", new NetworkDecoder(this.eventManager, this.pluginManager));
-        pipeline.addLast("clientHandler", new GameNetworkHandler(this.eventManager, this.pluginManager, this.connectionManager, this.serviceProvider));
+        pipeline.addLast("clientHandler", new GameNetworkHandler(this.eventManager, this.pluginManager, this.connectionManager, this.advancedScheduler, this.serviceProvider));
     }
 }
