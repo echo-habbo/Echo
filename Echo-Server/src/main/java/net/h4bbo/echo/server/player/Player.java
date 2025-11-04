@@ -36,13 +36,11 @@ public class Player implements IPlayer {
     }
 
     @Override
-    public CompletableFuture<Void> disconnect() {
+    public void disconnect() {
         if (this.isAuthenticated) {
             this.isAuthenticated = false;
             Echo.getEventManager().publish(new PlayerDisconnectEvent(this));
         }
-
-        return null;
     }
 
     @Override

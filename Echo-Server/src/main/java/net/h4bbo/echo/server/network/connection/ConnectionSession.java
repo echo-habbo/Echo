@@ -74,7 +74,7 @@ public class ConnectionSession implements IConnectionSession {
 
         try {
             if (player != null) {
-                player.disconnect().get();
+                player.disconnect();
             }
         } catch (Exception e) {
 
