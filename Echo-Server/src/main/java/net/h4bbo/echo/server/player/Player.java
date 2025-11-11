@@ -5,16 +5,16 @@ import io.netty.util.AttributeKey;
 import net.h4bbo.echo.api.event.types.player.PlayerDisconnectEvent;
 import net.h4bbo.echo.api.game.entity.EntityType;
 import net.h4bbo.echo.api.game.player.IPlayer;
+import net.h4bbo.echo.api.game.room.entities.RoomEntity;
 import net.h4bbo.echo.api.network.codecs.IPacketCodec;
 import net.h4bbo.echo.api.network.connection.IConnectionSession;
 import net.h4bbo.echo.server.Echo;
 import net.h4bbo.echo.server.network.connection.ConnectionSession;
 
-import java.util.concurrent.CompletableFuture;
-
 public class Player implements IPlayer {
     private final IConnectionSession connection;
     private boolean isAuthenticated;
+    private RoomEntity roomEntity;
 
     public Player(ConnectionSession connectionSession) {
         this.connection = connectionSession;
@@ -61,5 +61,10 @@ public class Player implements IPlayer {
     @Override
     public EntityType getType() {
         return EntityType.PLAYER;
+    }
+
+    @Override
+    public RoomEntity getRoomEntity() {
+        return this.attr(RoomEntity.DATA_KEY).get();
     }
 }
